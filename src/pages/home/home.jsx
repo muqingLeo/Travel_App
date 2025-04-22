@@ -40,7 +40,7 @@ import {
   BulbOutlined,
   UserOutlined,
   MessageOutlined,
-  ClockOutlined
+  ClockCircleOutlined
 } from '@ant-design/icons';
 import styled from 'styled-components';
 import { useAuth } from '../../contexts/AuthContext';
@@ -320,8 +320,11 @@ const Home = () => {
   
   // Navigate to destination page (would be implemented in a real app)
   const navigateToDestination = (destination) => {
-    console.log(`Navigating to ${destination}`);
-    // In a real app, this would navigate to a destination page
+    if (!destination) {
+      return;
+    }
+    // Navigate to the destination page with the destination as a parameter
+    navigate(`/destination/${encodeURIComponent(destination)}`);
   };
   
   // Start a trip planning process
@@ -641,7 +644,7 @@ const Home = () => {
                       
                       <Space split={<Divider type="vertical" />}>
                         <Text>
-                          <ClockOutlined /> {experience.duration}
+                          <ClockCircleOutlined /> {experience.duration}
                         </Text>
                         <Text>
                           <StarOutlined style={{ color: '#faad14' }} /> {experience.rating}
