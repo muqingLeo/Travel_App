@@ -43,11 +43,6 @@ const Logo = styled.div`
   margin-right: 24px;
   display: flex;
   align-items: center;
-  
-  img {
-    height: 32px;
-    margin-right: 8px;
-  }
 `;
 
 const MobileMenuButton = styled(Button)`
@@ -118,29 +113,29 @@ const AppLayout = ({ children }) => {
   };
 
   const menuItems = [
-    { key: 'home', icon: <HomeOutlined />, label: t('menu.home'), path: '/' },
-    { key: 'itinerary', icon: <CalendarOutlined />, label: t('menu.itinerary'), path: '/itinerary' },
-    { key: 'chat', icon: <MessageOutlined />, label: t('menu.chat'), path: '/chat' },
-    { key: 'explore', icon: <GlobalOutlined />, label: t('menu.explore'), path: '/explore' }
+    { key: 'home', icon: <HomeOutlined />, label: 'Home', path: '/' },
+    { key: 'itinerary', icon: <CalendarOutlined />, label: 'My Trips', path: '/itinerary' },
+    { key: 'chat', icon: <MessageOutlined />, label: 'Travel Assistant', path: '/chat' },
+    { key: 'explore', icon: <GlobalOutlined />, label: 'Explore', path: '/explore' }
   ];
 
   const userMenuItems = [
     {
       key: 'profile',
       icon: <UserOutlined />,
-      label: t('menu.profile'),
+      label: 'Profile',
       onClick: () => navigate('/profile')
     },
     {
       key: 'settings',
       icon: <SettingOutlined />,
-      label: t('menu.settings'),
+      label: 'Settings',
       onClick: () => navigate('/settings')
     },
     {
       key: 'logout',
       icon: <LogoutOutlined />,
-      label: t('menu.logout'),
+      label: 'Logout',
       onClick: handleLogout
     }
   ];
@@ -162,7 +157,6 @@ const AppLayout = ({ children }) => {
           />
           
           <Logo>
-            <img src="/logo.svg" alt="Travel Assist" />
             Travel Assist
           </Logo>
 

@@ -12,6 +12,7 @@ import Chat from './pages/chat/chat';
 import Destination from './pages/destination/destination';
 import Booking from './pages/booking/booking';
 import NotFound from './pages/notFound/notFound';
+import Login from './pages/login/login';
 
 // Components
 import AppLayout from './components/AppLayout';
@@ -52,6 +53,7 @@ const App = () => {
                   <AppLayout>
                     <Routes>
                       <Route path="/" element={<Home />} />
+                      <Route path="/login" element={<Login />} />
                       <Route path="/profile" element={
                         <AuthGuard>
                           <Profile />

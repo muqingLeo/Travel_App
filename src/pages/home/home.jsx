@@ -86,6 +86,9 @@ const CarouselImage = styled.div`
   height: 500px;
   background-size: cover;
   background-position: center;
+  background-repeat: no-repeat;
+  transition: opacity 0.3s ease;
+  will-change: opacity;
   
   @media (max-width: 768px) {
     height: 400px;
@@ -306,13 +309,26 @@ const Home = () => {
     let options = [];
     
     if (value) {
-      options = [
+      // Comprehensive list of destinations for search
+      const allDestinations = [
         { value: 'Tokyo, Japan', label: 'Tokyo, Japan' },
         { value: 'Paris, France', label: 'Paris, France' },
         { value: 'New York, USA', label: 'New York, USA' },
         { value: 'Rome, Italy', label: 'Rome, Italy' },
-        { value: 'Sydney, Australia', label: 'Sydney, Australia' }
-      ].filter(opt => opt.value.toLowerCase().includes(value.toLowerCase()));
+        { value: 'Sydney, Australia', label: 'Sydney, Australia' },
+        { value: 'London, UK', label: 'London, UK' },
+        { value: 'Barcelona, Spain', label: 'Barcelona, Spain' },
+        { value: 'Singapore', label: 'Singapore' },
+        { value: 'Seoul, South Korea', label: 'Seoul, South Korea' },
+        { value: 'San Francisco, USA', label: 'San Francisco, USA' },
+        { value: 'Stockholm, Sweden', label: 'Stockholm, Sweden' },
+        { value: 'Shanghai, China', label: 'Shanghai, China' }
+      ];
+      
+      // Filter based on the first letter(s) of either the city or country
+      options = allDestinations.filter(opt => 
+        opt.value.toLowerCase().includes(value.toLowerCase())
+      );
     }
     
     setSearchOptions(options);
@@ -346,20 +362,20 @@ const Home = () => {
         
         <HeroContent>
           <Title level={1} style={{ color: 'white', marginBottom: 8 }}>
-            {t('home.hero.title')}
+            Your Perfect Trip Awaits
           </Title>
           <Title level={3} style={{ color: 'white', fontWeight: 'normal', marginBottom: 32 }}>
-            {t('home.hero.subtitle')}
+            Discover amazing destinations with personalized travel plans
           </Title>
           
           <SearchPanel>
             <Tabs activeKey={activeTab} onChange={setActiveTab}>
-              <TabPane tab={<span><EnvironmentOutlined /> {t('home.search.destinations')}</span>} key="destinations">
+              <TabPane tab={<span><EnvironmentOutlined /> Destinations</span>} key="destinations">
                 <Row gutter={[16, 16]}>
                   <Col xs={24} md={8}>
                     <AutoComplete
                       style={{ width: '100%' }}
-                      placeholder={t('home.search.whereTo')}
+                      placeholder="Where would you like to go?"
                       options={searchOptions}
                       onSearch={handleSearch}
                       onChange={setSearchQuery}
@@ -372,7 +388,7 @@ const Home = () => {
                     <RangePicker 
                       size="large" 
                       style={{ width: '100%' }} 
-                      placeholder={[t('home.search.start'), t('home.search.end')]}
+                      placeholder={["Start Date", "End Date"]}
                     />
                   </Col>
                   <Col xs={24} md={8}>
@@ -383,18 +399,18 @@ const Home = () => {
                       style={{ width: '100%' }}
                       onClick={() => navigateToDestination(searchQuery)}
                     >
-                      {t('home.search.explore')}
+                      Explore
                     </Button>
                   </Col>
                 </Row>
               </TabPane>
               
-              <TabPane tab={<span><BulbOutlined /> {t('home.search.aiPlanner')}</span>} key="planner">
+              <TabPane tab={<span><BulbOutlined /> AI Trip Planner</span>} key="planner">
                 <Row gutter={[16, 16]}>
                   <Col xs={24} md={16}>
                     <Input.TextArea 
                       size="large" 
-                      placeholder={t('home.search.aiPlannerPlaceholder')} 
+                      placeholder="Describe your dream trip and let our AI plan it for you" 
                       autoSize={{ minRows: 2, maxRows: 3 }}
                     />
                   </Col>
@@ -406,13 +422,13 @@ const Home = () => {
                       style={{ width: '100%' }}
                       onClick={startTripPlanning}
                     >
-                      {t('home.search.aiGenerate')}
+                      Generate Plan
                     </Button>
                   </Col>
                   
                   <Col span={24}>
                     <Text type="secondary">
-                      <BulbOutlined /> {t('home.search.example')}: "Plan a 7-day trip to Japan in April for a family of 4 with interests in culture and food"
+                      <BulbOutlined /> Example: "Plan a 7-day trip to Japan in April for a family of 4 with interests in culture and food"
                     </Text>
                   </Col>
                 </Row>
@@ -425,7 +441,7 @@ const Home = () => {
       {/* AI Features Section */}
       <div style={{ marginBottom: 48 }}>
         <SectionTitle>
-          <Title level={2}>{t('home.aiFeatures.title')}</Title>
+          <Title level={2}>Smart Travel Features</Title>
         </SectionTitle>
         
         <Row gutter={[24, 24]}>
@@ -438,9 +454,9 @@ const Home = () => {
                   icon={<GlobalOutlined style={{ fontSize: 32 }} />}
                 />
                 <div>
-                  <Title level={4} style={{ marginTop: 0 }}>{t('home.aiFeatures.realTimeLang.title')}</Title>
+                  <Title level={4} style={{ marginTop: 0 }}>Real-time Translation</Title>
                   <Paragraph>
-                    {t('home.aiFeatures.realTimeLang.description')}
+                    Break through language barriers with instant translation in over 50 languages to communicate easily with locals.
                   </Paragraph>
                 </div>
               </Space>
@@ -449,7 +465,7 @@ const Home = () => {
                 style={{ paddingLeft: 0 }}
                 onClick={() => navigate('/chat')}
               >
-                {t('home.aiFeatures.tryNow')} <ArrowRightOutlined />
+                Try Now <ArrowRightOutlined />
               </Button>
             </AIFeatureCard>
           </Col>
@@ -463,9 +479,9 @@ const Home = () => {
                   icon={<ThunderboltOutlined style={{ fontSize: 32 }} />}
                 />
                 <div>
-                  <Title level={4} style={{ marginTop: 0 }}>{t('home.aiFeatures.dynamicAdapt.title')}</Title>
+                  <Title level={4} style={{ marginTop: 0 }}>Dynamic Trip Adaptation</Title>
                   <Paragraph>
-                    {t('home.aiFeatures.dynamicAdapt.description')}
+                    Stay one step ahead with real-time itinerary adjustments for weather changes, local events, and travel disruptions.
                   </Paragraph>
                 </div>
               </Space>
@@ -474,7 +490,7 @@ const Home = () => {
                 style={{ paddingLeft: 0 }}
                 onClick={() => navigate('/itinerary')}
               >
-                {t('home.aiFeatures.tryNow')} <ArrowRightOutlined />
+                Try Now <ArrowRightOutlined />
               </Button>
             </AIFeatureCard>
           </Col>
@@ -488,9 +504,9 @@ const Home = () => {
                   icon={<BulbOutlined style={{ fontSize: 32 }} />}
                 />
                 <div>
-                  <Title level={4} style={{ marginTop: 0 }}>{t('home.aiFeatures.personalRec.title')}</Title>
+                  <Title level={4} style={{ marginTop: 0 }}>Smart Recommendations</Title>
                   <Paragraph>
-                    {t('home.aiFeatures.personalRec.description')}
+                    Get personalized suggestions based on your preferences and travel style for a customized experience.
                   </Paragraph>
                 </div>
               </Space>
@@ -499,7 +515,7 @@ const Home = () => {
                 style={{ paddingLeft: 0 }}
                 onClick={() => navigate('/profile')}
               >
-                {t('home.aiFeatures.tryNow')} <ArrowRightOutlined />
+                Try Now <ArrowRightOutlined />
               </Button>
             </AIFeatureCard>
           </Col>
@@ -509,9 +525,9 @@ const Home = () => {
       {/* Trending Destinations */}
       <div style={{ marginBottom: 48 }}>
         <SectionTitle>
-          <Title level={2}>{t('home.trending.title')}</Title>
+          <Title level={2}>Trending Destinations</Title>
           <Button type="link" icon={<ArrowRightOutlined />}>
-            {t('home.viewAll')}
+            View All
           </Button>
         </SectionTitle>
         
@@ -549,7 +565,7 @@ const Home = () => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Space>
                       <FireOutlined style={{ color: '#ff4d4f' }} />
-                      <Text>{t('home.trending.trending')}</Text>
+                      <Text>Trending</Text>
                     </Space>
                     <Badge 
                       count={destination.score} 
@@ -569,7 +585,7 @@ const Home = () => {
       {/* User Testimonials */}
       <div style={{ marginBottom: 48 }}>
         <SectionTitle>
-          <Title level={2}>{t('home.testimonials.title')}</Title>
+          <Title level={2}>Traveler Stories</Title>
         </SectionTitle>
         
         <Row gutter={[24, 24]}>
@@ -612,9 +628,9 @@ const Home = () => {
       {/* Popular Experiences */}
       <div style={{ marginBottom: 48 }}>
         <SectionTitle>
-          <Title level={2}>{t('home.experiences.title')}</Title>
+          <Title level={2}>Unforgettable Experiences</Title>
           <Button type="link" icon={<ArrowRightOutlined />}>
-            {t('home.viewAll')}
+            View All
           </Button>
         </SectionTitle>
         
@@ -629,7 +645,7 @@ const Home = () => {
                     <Button type="text" icon={<HeartOutlined />} />
                   </Tooltip>,
                   <Button type="primary" shape="round">
-                    {t('home.experiences.bookNow')}
+                    Book Now
                   </Button>
                 ]}
               >
@@ -639,7 +655,7 @@ const Home = () => {
                     <>
                       <div style={{ marginBottom: 8 }}>
                         <Text strong style={{ fontSize: 18 }}>{experience.price}</Text>
-                        <Text type="secondary"> / {t('home.experiences.person')}</Text>
+                        <Text type="secondary"> / person</Text>
                       </div>
                       
                       <Space split={<Divider type="vertical" />}>
@@ -666,27 +682,35 @@ const Home = () => {
       <div style={{ marginBottom: 48 }}>
         <Row gutter={24} align="middle">
           <Col xs={24} md={12}>
-            <Title level={2}>{t('home.download.title')}</Title>
+            <Title level={2}>Take Travel Assist Anywhere</Title>
             <Paragraph style={{ fontSize: 16 }}>
-              {t('home.download.description')}
+              Download our mobile app to access all travel features on the go. Get real-time updates, offline maps, and emergency assistance anywhere in the world.
             </Paragraph>
             
             <Row gutter={16} style={{ marginTop: 24 }}>
               <Col>
                 <Button size="large">
                   <img 
-                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Download_on_the_App_Store_Badge.svg/1280px-Download_on_the_App_Store_Badge.svg.png" 
+                    src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" 
                     alt="App Store" 
                     style={{ height: 24 }} 
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = "/assets/images/app-store-badge.png";
+                    }}
                   />
                 </Button>
               </Col>
               <Col>
                 <Button size="large">
                   <img 
-                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Google_Play_Store_badge_EN.svg/2560px-Google_Play_Store_badge_EN.svg.png" 
+                    src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" 
                     alt="Google Play" 
                     style={{ height: 24 }} 
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = "/assets/images/play-store-badge.png";
+                    }}
                   />
                 </Button>
               </Col>
@@ -695,9 +719,9 @@ const Home = () => {
             <Row style={{ marginTop: 24 }}>
               <Col>
                 <Space size="large">
-                  <Statistic title={t('home.download.users')} value="500K+" />
-                  <Statistic title={t('home.download.trips')} value="1.2M+" />
-                  <Statistic title={t('home.download.countries')} value="120+" />
+                  <Statistic title="Active Users" value="500K+" />
+                  <Statistic title="Trips Planned" value="1.2M+" />
+                  <Statistic title="Countries" value="120+" />
                 </Space>
               </Col>
             </Row>
@@ -706,9 +730,13 @@ const Home = () => {
           <Col xs={24} md={12}>
             <div style={{ textAlign: 'center' }}>
               <img 
-                src="https://www.pngkit.com/png/full/1-14415_samsung-png-transparent-samsung-galaxy-s8-mockup-png.png" 
+                src="https://i.imgur.com/Jvh1OQm.png" 
                 alt="Mobile App" 
                 style={{ maxWidth: '100%', height: 'auto' }} 
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = "/assets/images/phone-mockup.png";
+                }}
               />
             </div>
           </Col>
@@ -726,10 +754,10 @@ const Home = () => {
         <Row gutter={24} justify="space-between" align="middle">
           <Col xs={24} md={16}>
             <Title level={2} style={{ color: 'white', marginBottom: 8 }}>
-              {t('home.cta.title')}
+              Start Planning Your Adventure Today
             </Title>
             <Paragraph style={{ color: 'white', fontSize: 16 }}>
-              {t('home.cta.description')}
+              Let our AI-powered assistant create a personalized itinerary for your next dream vacation.
             </Paragraph>
           </Col>
           
@@ -749,7 +777,7 @@ const Home = () => {
               }}
               onClick={startTripPlanning}
             >
-              {t('home.cta.button')}
+              Plan Your Trip
             </Button>
           </Col>
         </Row>

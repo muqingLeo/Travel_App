@@ -84,7 +84,20 @@ const enResources = {
     reviews: 'Reviews',
     transportation: 'Getting Around',
     tips: 'Local Tips',
-    nearbyPlaces: 'Nearby Places'
+    nearbyPlaces: 'Nearby Places',
+    bestTimeToVisit: 'Best time to visit',
+    language: 'Language',
+    currency: 'Currency',
+    about: 'About',
+    highlights: 'Highlights',
+    knownFor: 'is known for its unique blend of culture, cuisine, and attractions. Visitors particularly enjoy the ',
+    localSights: 'local sights',
+    vibrantAtmosphere: 'and the vibrant atmosphere.',
+    upcomingEvents: 'Upcoming Events',
+    travelEssentials: 'Travel Essentials',
+    bookTours: 'Book Tours & Activities',
+    findAccommodation: 'Find Accommodation',
+    transportationOptions: 'Transportation Options'
   },
   booking: {
     confirmBooking: 'Confirm Booking',
@@ -194,7 +207,20 @@ const zhResources = {
     reviews: '评价',
     transportation: '交通出行',
     tips: '当地提示',
-    nearbyPlaces: '附近地点'
+    nearbyPlaces: '附近地点',
+    bestTimeToVisit: '最佳访问时间',
+    language: '语言',
+    currency: '货币',
+    about: '关于',
+    highlights: '亮点',
+    knownFor: '以其独特的文化、美食和景点而闻名。游客特别喜欢',
+    localSights: '当地景点',
+    vibrantAtmosphere: '和充满活力的氛围。',
+    upcomingEvents: '即将举行的活动',
+    travelEssentials: '旅行必备',
+    bookTours: '预订旅游和活动',
+    findAccommodation: '查找住宿',
+    transportationOptions: '交通选项'
   },
   booking: {
     confirmBooking: '确认预订',
