@@ -1,76 +1,77 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, Button, Drawer, Avatar, Dropdown, Badge, Switch, Spin } from 'antd';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import {
-  HomeOutlined,
-  CalendarOutlined,
-  MessageOutlined,
+import { useNavigate, useLocation } from 'react-router-dom';
+import { 
+  Layout, 
+  Menu, 
+  Button, 
+  Dropdown, 
+  Space, 
+  Avatar, 
+  Divider, 
+  Spin,
+  Badge,
+  Row,
+  Col,
+  Typography
+} from 'antd';
+import { 
+  HomeOutlined, 
+  CalendarOutlined, 
+  MessageOutlined, 
   GlobalOutlined,
-  UserOutlined,
-  MenuOutlined,
-  BellOutlined,
+  UserOutlined, 
+  SettingOutlined, 
   LogoutOutlined,
-  SettingOutlined,
-  TranslationOutlined
+  TranslationOutlined,
+  LoadingOutlined
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
+import styled from 'styled-components';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocale } from '../contexts/LocaleContext';
-import styled from 'styled-components';
 
 const { Header, Content, Footer } = Layout;
+const { Text, Title } = Typography;
 
+// Styled components
 const StyledHeader = styled(Header)`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  background-color: white;
+  padding: 0 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
   position: sticky;
   top: 0;
   z-index: 10;
-  background: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  padding: 0 24px;
-
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  
   @media (max-width: 768px) {
-    padding: 0 16px;
+    padding: 0 12px;
   }
 `;
 
 const Logo = styled.div`
-  font-size: 20px;
-  font-weight: 600;
-  color: #1890ff;
-  margin-right: 24px;
-  display: flex;
-  align-items: center;
-`;
-
-const MobileMenuButton = styled(Button)`
-  display: none;
-  @media (max-width: 768px) {
-    display: block;
-  }
-`;
-
-const DesktopMenu = styled(Menu)`
-  @media (max-width: 768px) {
-    display: none;
-  }
-`;
-
-const ActionButtons = styled.div`
   display: flex;
   align-items: center;
   
-  > * {
-    margin-left: 16px;
+  h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    background: linear-gradient(90deg, #00355f 0%, #1668e3 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    
+    @media (max-width: 768px) {
+      font-size: 20px;
+    }
   }
 `;
 
 const StyledContent = styled(Content)`
-  min-height: calc(100vh - 64px - 64px);
   padding: 24px;
-  background: #f5f5f5;
+  min-height: calc(100vh - 64px - 80px);
   
   @media (max-width: 768px) {
     padding: 16px;
@@ -78,33 +79,59 @@ const StyledContent = styled(Content)`
 `;
 
 const StyledFooter = styled(Footer)`
-  text-align: center;
-  background: white;
+  background-color: #00355f;
   padding: 24px;
+  color: white;
+`;
+
+const UserSection = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
+const StyledMenu = styled(Menu)`
+  border: none;
+  flex: 1;
+  justify-content: center;
+  
+  &.ant-menu-horizontal > .ant-menu-item::after,
+  &.ant-menu-horizontal > .ant-menu-submenu::after {
+    border-bottom: none !important;
+  }
+  
+  .ant-menu-item-selected {
+    font-weight: 600;
+    color: #1668e3 !important;
+  }
+  
+  @media (max-width: 768px) {
+    display: none;
+  }
+`;
+
+const FooterSection = styled.div`
+  margin-bottom: 24px;
 `;
 
 const AppLayout = ({ children }) => {
   const { t } = useTranslation();
-  const location = useLocation();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuth();
   const { locale, changeLocale } = useLocale();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  
+  // Handle navigation
+  const onMenuClick = (e) => {
+    navigate(e.key);
+  };
 
-  // Current selected menu item based on path
-  const selectedKey = location.pathname === '/' ? 'home' : location.pathname.split('/')[1];
-
-  // Close mobile menu on route change
-  useEffect(() => {
-    setMobileMenuOpen(false);
-  }, [location.pathname]);
-
+  // Handle logout
   const handleLogout = async () => {
     setLoading(true);
     try {
       await logout();
-      navigate('/');
+      navigate('/login');
     } catch (error) {
       console.error('Logout failed:', error);
     } finally {
@@ -113,10 +140,10 @@ const AppLayout = ({ children }) => {
   };
 
   const menuItems = [
-    { key: 'home', icon: <HomeOutlined />, label: 'Home', path: '/' },
-    { key: 'itinerary', icon: <CalendarOutlined />, label: 'My Trips', path: '/itinerary' },
-    { key: 'chat', icon: <MessageOutlined />, label: 'Travel Assistant', path: '/chat' },
-    { key: 'explore', icon: <GlobalOutlined />, label: 'Explore', path: '/explore' }
+    { key: '/', icon: <HomeOutlined />, label: 'Home', path: '/' },
+    { key: '/itinerary', icon: <CalendarOutlined />, label: 'My Trips', path: '/itinerary' },
+    { key: '/chat', icon: <MessageOutlined />, label: 'Travel Assistant', path: '/chat' },
+    { key: '/explore', icon: <GlobalOutlined />, label: 'Explore', path: '/explore' }
   ];
 
   const userMenuItems = [
@@ -141,129 +168,181 @@ const AppLayout = ({ children }) => {
   ];
 
   // Language options
-  const languageOptions = [
-    { key: 'en', label: 'English' },
-    { key: 'zh', label: '中文' }
+  const languages = [
+    {
+      key: 'en',
+      label: 'English',
+      emoji: '🇺🇸'
+    },
+    {
+      key: 'fr',
+      label: 'Français',
+      emoji: '🇫🇷'
+    },
+    {
+      key: 'zh',
+      label: '中文',
+      emoji: '🇨🇳'
+    },
+    {
+      key: 'ja',
+      label: '日本語',
+      emoji: '🇯🇵'
+    }
   ];
 
   return (
-    <Layout>
-      <StyledHeader>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <MobileMenuButton
-            type="text"
-            icon={<MenuOutlined />}
-            onClick={() => setMobileMenuOpen(true)}
-          />
-          
-          <Logo>
+    <Layout className="exp-container">
+      <StyledHeader className="exp-nav">
+        <Logo>
+          <h1 onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
             Travel Assist
-          </Logo>
-
-          <DesktopMenu
-            mode="horizontal"
-            selectedKeys={[selectedKey]}
-            items={menuItems.map(item => ({
-              ...item,
-              label: <Link to={item.path}>{item.label}</Link>
-            }))}
-          />
-        </div>
-
-        <ActionButtons>
-          <Dropdown
-            menu={{
-              items: languageOptions.map(lang => ({
-                ...lang,
-                onClick: () => changeLocale(lang.key)
-              }))
-            }}
-            placement="bottomRight"
-            arrow
-          >
-            <Button icon={<TranslationOutlined />} shape="circle" />
-          </Dropdown>
-
-          <Badge count={3} dot>
-            <Button icon={<BellOutlined />} shape="circle" />
-          </Badge>
-
-          {user ? (
-            <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" arrow>
-              <Avatar 
-                src={user.photoURL}
-                icon={!user.photoURL && <UserOutlined />}
-                style={{ cursor: 'pointer' }}
-              />
-            </Dropdown>
-          ) : (
-            <Button type="primary" onClick={() => navigate('/login')}>
-              {t('auth.login')}
-            </Button>
-          )}
-        </ActionButtons>
-      </StyledHeader>
-
-      <Drawer
-        title={<Logo>Travel Assist</Logo>}
-        placement="left"
-        onClose={() => setMobileMenuOpen(false)}
-        open={mobileMenuOpen}
-        width={250}
-      >
-        <Menu
-          mode="vertical"
-          selectedKeys={[selectedKey]}
+          </h1>
+        </Logo>
+        
+        <StyledMenu
+          mode="horizontal"
+          selectedKeys={[location.pathname]}
+          onClick={onMenuClick}
           items={menuItems.map(item => ({
-            ...item,
-            label: <Link to={item.path}>{item.label}</Link>
+            key: item.path,
+            icon: item.icon,
+            label: t(`nav.${item.label.toLowerCase().replace(' ', '')}`) || item.label,
+            className: location.pathname === item.path ? 'exp-nav-link active' : 'exp-nav-link'
           }))}
         />
         
-        {user && (
-          <>
-            <div style={{ margin: '16px 0', borderTop: '1px solid #f0f0f0' }} />
-            <Menu
-              mode="vertical"
-              items={userMenuItems}
-            />
-          </>
-        )}
-
-        <div style={{ position: 'absolute', bottom: 16, left: 24, right: 24 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span>{t('settings.language')}</span>
+        <UserSection>
+          <Space>
             <Dropdown
               menu={{
-                items: languageOptions.map(lang => ({
-                  ...lang,
+                items: languages.map(lang => ({
+                  key: lang.key,
+                  label: (
+                    <Space>
+                      <span>{lang.emoji}</span>
+                      <span>{lang.label}</span>
+                    </Space>
+                  ),
                   onClick: () => changeLocale(lang.key)
                 }))
               }}
-              placement="topRight"
+              placement="bottomRight"
               arrow
             >
-              <Button type="text">
-                {locale === 'zh' ? '中文' : 'English'} <GlobalOutlined />
+              <Button 
+                icon={<TranslationOutlined />} 
+                type="text"
+              >
+                {languages.find(l => l.key === locale)?.emoji}
               </Button>
             </Dropdown>
-          </div>
-        </div>
-      </Drawer>
-
+            
+            {user ? (
+              <Dropdown
+                menu={{ 
+                  items: userMenuItems
+                }}
+                placement="bottomRight"
+                arrow
+              >
+                <Button 
+                  type="text" 
+                  icon={
+                    loading ? 
+                    <LoadingOutlined /> : 
+                    <Avatar 
+                      size="small" 
+                      src={user.avatar}
+                      icon={!user.avatar && <UserOutlined />}
+                    />
+                  }
+                >
+                  <span style={{ marginLeft: 8 }}>{user.name?.split(' ')[0]}</span>
+                </Button>
+              </Dropdown>
+            ) : (
+              <Button 
+                type="primary" 
+                onClick={() => navigate('/login')}
+                className="exp-btn-primary"
+              >
+                {t('nav.signIn')}
+              </Button>
+            )}
+          </Space>
+        </UserSection>
+      </StyledHeader>
+      
       <StyledContent>
-        <Spin spinning={loading} tip={t('common.loading')} size="large">
-          {children}
-        </Spin>
+        {children}
       </StyledContent>
-
-      <StyledFooter>
-        <div>Travel Assist ©{new Date().getFullYear()} - {t('footer.rights')}</div>
-        <div style={{ marginTop: 8 }}>
-          <a href="/terms">{t('footer.terms')}</a> | 
-          <a href="/privacy" style={{ marginLeft: 8 }}>{t('footer.privacy')}</a> | 
-          <a href="/contact" style={{ marginLeft: 8 }}>{t('footer.contact')}</a>
-        </div>
+      
+      <StyledFooter className="exp-footer">
+        <Row gutter={[24, 32]}>
+          <Col xs={24} sm={12} md={6}>
+            <FooterSection>
+              <Title level={4} className="exp-footer-title">{t('footer.company')}</Title>
+              <a className="exp-footer-link" href="#">{t('footer.about')}</a>
+              <a className="exp-footer-link" href="#">{t('footer.careers')}</a>
+              <a className="exp-footer-link" href="#">{t('footer.news')}</a>
+              <a className="exp-footer-link" href="#">{t('footer.contact')}</a>
+            </FooterSection>
+          </Col>
+          
+          <Col xs={24} sm={12} md={6}>
+            <FooterSection>
+              <Title level={4} className="exp-footer-title">{t('footer.support')}</Title>
+              <a className="exp-footer-link" href="#">{t('footer.help')}</a>
+              <a className="exp-footer-link" href="#">{t('footer.safety')}</a>
+              <a className="exp-footer-link" href="#">{t('footer.cancellation')}</a>
+              <a className="exp-footer-link" href="#">{t('footer.covidInfo')}</a>
+            </FooterSection>
+          </Col>
+          
+          <Col xs={24} sm={12} md={6}>
+            <FooterSection>
+              <Title level={4} className="exp-footer-title">{t('footer.discover')}</Title>
+              <a className="exp-footer-link" href="#">{t('footer.destinations')}</a>
+              <a className="exp-footer-link" href="#">{t('footer.seasons')}</a>
+              <a className="exp-footer-link" href="#">{t('footer.travelTypes')}</a>
+              <a className="exp-footer-link" href="#">{t('footer.appDownload')}</a>
+            </FooterSection>
+          </Col>
+          
+          <Col xs={24} sm={12} md={6}>
+            <FooterSection>
+              <Title level={4} className="exp-footer-title">{t('footer.legal')}</Title>
+              <a className="exp-footer-link" href="#">{t('footer.terms')}</a>
+              <a className="exp-footer-link" href="#">{t('footer.privacy')}</a>
+              <a className="exp-footer-link" href="#">{t('footer.cookiePolicy')}</a>
+              <a className="exp-footer-link" href="#">{t('footer.accessibility')}</a>
+            </FooterSection>
+          </Col>
+        </Row>
+        
+        <Divider style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }} />
+        
+        <Row justify="space-between" align="middle">
+          <Col>
+            <Text style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+              © {new Date().getFullYear()} Travel Assist. {t('footer.allRightsReserved')}
+            </Text>
+          </Col>
+          <Col>
+            <Space size="large">
+              <a style={{ color: 'rgba(255, 255, 255, 0.7)' }} href="#">
+                <i className="fab fa-facebook-f"></i>
+              </a>
+              <a style={{ color: 'rgba(255, 255, 255, 0.7)' }} href="#">
+                <i className="fab fa-twitter"></i>
+              </a>
+              <a style={{ color: 'rgba(255, 255, 255, 0.7)' }} href="#">
+                <i className="fab fa-instagram"></i>
+              </a>
+            </Space>
+          </Col>
+        </Row>
       </StyledFooter>
     </Layout>
   );

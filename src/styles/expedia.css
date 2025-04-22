@@ -1,0 +1,743 @@
+/* Expedia-inspired CSS styles */
+
+/* Expedia-inspired UI styles */
+
+/* Colors */
+:root {
+  --exp-primary: #1668e3;
+  --exp-secondary: #00778b;
+  --exp-accent: #ff6b6b;
+  --exp-success: #2ecc40;
+  --exp-warning: #f39c12;
+  --exp-error: #e74c3c;
+  --exp-light-gray: #f5f5f5;
+  --exp-medium-gray: #d9d9d9;
+  --exp-dark-gray: #757575;
+  
+  /* Core colors */
+  --expedia-blue-dark: #00355f;
+  --expedia-blue: #1668e3;
+  --expedia-orange: #fc9e15;
+  --expedia-green: #0c752c;
+  --expedia-warning: #db7c00;
+  --expedia-danger: #cc0000;
+  --expedia-grey-light: #f5f5f5;
+  --expedia-grey-medium: #d9d9d9;
+  --expedia-grey-dark: #616161;
+  --expedia-white: #ffffff;
+  --expedia-black: #1a1a1a;
+  
+  /* Typography */
+  --expedia-font-family: 'Open Sans', 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* General container */
+.exp-container {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Typography */
+.exp-heading-xl {
+  font-family: var(--expedia-font-family);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--expedia-blue-dark);
+  margin-bottom: 16px;
+}
+
+.exp-heading-lg {
+  font-family: var(--expedia-font-family);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--expedia-blue-dark);
+  margin-bottom: 12px;
+}
+
+.exp-heading-md {
+  font-family: var(--expedia-font-family);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--expedia-blue-dark);
+  margin-bottom: 8px;
+}
+
+.exp-text {
+  font-family: var(--expedia-font-family);
+  font-size: 16px;
+  color: var(--expedia-grey-dark);
+  line-height: 1.5;
+}
+
+.exp-text-sm {
+  font-family: var(--expedia-font-family);
+  font-size: 14px;
+  color: var(--expedia-grey-dark);
+  line-height: 1.4;
+}
+
+h1.exp-heading, 
+h2.exp-heading, 
+h3.exp-heading,
+h4.exp-heading {
+  font-weight: 700;
+  color: var(--exp-primary);
+}
+
+/* Cards */
+.exp-card {
+  background-color: var(--expedia-white);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: none;
+  overflow: hidden;
+}
+
+.exp-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.exp-card-header {
+  padding: 16px;
+  background-color: var(--expedia-blue-dark);
+  color: var(--expedia-white);
+  font-weight: 600;
+}
+
+.exp-card-content {
+  padding: 16px;
+}
+
+.exp-card-footer {
+  padding: 16px;
+  border-top: 1px solid var(--expedia-grey-light);
+  background-color: var(--expedia-grey-light);
+}
+
+.exp-card-title {
+  color: var(--exp-primary);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+/* Buttons */
+.exp-btn-primary {
+  background-color: var(--exp-primary);
+  border-color: var(--exp-primary);
+  border-radius: 4px;
+  font-weight: 600;
+  color: var(--expedia-white);
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  height: 40px;
+  padding: 0 20px;
+}
+
+.exp-btn-primary:hover {
+  background-color: #0d59c9;
+  border-color: #0d59c9;
+}
+
+.exp-btn-secondary {
+  background-color: var(--expedia-white);
+  color: var(--exp-primary);
+  border: 1px solid var(--exp-primary);
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  height: 40px;
+  padding: 0 20px;
+}
+
+.exp-btn-secondary:hover {
+  background-color: #f2f8ff;
+}
+
+.exp-btn-cta {
+  background-color: var(--expedia-orange);
+  color: var(--expedia-white);
+  border: none;
+  border-radius: 4px;
+  padding: 12px 24px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.exp-btn-cta:hover {
+  background-color: #e68a00;
+}
+
+.exp-btn-accent {
+  background-color: var(--exp-accent);
+  border-color: var(--exp-accent);
+  color: white;
+  border-radius: 4px;
+  font-weight: 600;
+  height: 40px;
+  padding: 0 20px;
+}
+
+.exp-btn-accent:hover {
+  background-color: #e86f00;
+  border-color: #e86f00;
+  color: white;
+}
+
+/* Search Panel */
+.exp-search-panel {
+  background-color: var(--expedia-white);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.exp-search-tabs {
+  margin-bottom: 16px;
+}
+
+.exp-search-tabs .ant-tabs-tab {
+  padding: 12px 20px;
+  margin-right: 4px;
+  font-weight: 600;
+}
+
+.exp-search-tabs .ant-tabs-tab.ant-tabs-tab-active {
+  background-color: var(--exp-secondary);
+  border-radius: 8px 8px 0 0;
+}
+
+.exp-search-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: white !important;
+}
+
+/* Form Elements */
+.exp-input {
+  border-radius: 4px;
+  border: 1px solid var(--expedia-grey-medium);
+  padding: 10px 12px;
+  width: 100%;
+  transition: border-color 0.3s ease;
+  height: 48px;
+}
+
+.exp-input:focus {
+  border-color: var(--expedia-blue);
+  box-shadow: 0 0 0 2px rgba(22, 104, 227, 0.2);
+}
+
+.exp-select {
+  border-radius: 4px;
+  border: 1px solid var(--expedia-grey-medium);
+  height: 48px;
+  width: 100%;
+}
+
+.exp-datepicker {
+  height: 48px;
+  border-radius: 4px;
+}
+
+.exp-form-label {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.exp-form-input {
+  border-radius: 4px;
+  height: 40px;
+}
+
+.exp-form-input:focus,
+.exp-form-input:hover {
+  border-color: var(--exp-primary);
+}
+
+/* Hero Section */
+.exp-hero {
+  position: relative;
+  height: 500px;
+  border-radius: 0;
+  overflow: hidden;
+  margin-bottom: 0;
+}
+
+.exp-hero-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 48px;
+  background: linear-gradient(to right, rgba(0, 53, 95, 0.8) 0%, rgba(0, 53, 95, 0.4) 50%, rgba(0, 0, 0, 0) 100%);
+  color: white;
+  z-index: 5;
+}
+
+/* Destination Cards */
+.exp-dest-card {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  margin-bottom: 16px;
+  height: 100%;
+  background: white;
+}
+
+.exp-dest-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.exp-dest-img-container {
+  position: relative;
+  height: 180px;
+  overflow: hidden;
+}
+
+.exp-dest-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.exp-dest-img-container:hover .exp-dest-img {
+  transform: scale(1.05);
+}
+
+.exp-dest-label {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px;
+  background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%);
+  color: white;
+}
+
+.exp-dest-content {
+  padding: 16px;
+}
+
+.exp-price-tag {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--expedia-blue-dark);
+}
+
+.exp-rating {
+  color: var(--expedia-orange);
+  font-weight: 700;
+}
+
+.exp-badge {
+  background-color: var(--expedia-green);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Deal Tags */
+.exp-deal-tag {
+  background-color: #ffe0b2;
+  color: var(--expedia-orange);
+  border: 1px solid var(--expedia-orange);
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+.exp-member-price {
+  background-color: var(--expedia-blue);
+  color: white;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.exp-deal-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 12px;
+  z-index: 1;
+}
+
+.exp-deal-badge.primary {
+  background-color: var(--exp-accent);
+  color: white;
+}
+
+.exp-deal-badge.secondary {
+  background-color: var(--exp-secondary);
+  color: white;
+}
+
+.exp-price-display {
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--exp-primary);
+}
+
+.exp-price-unit {
+  font-size: 14px;
+  color: var(--exp-dark-gray);
+}
+
+.exp-member-deal {
+  background-color: var(--exp-secondary);
+  color: white;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+.exp-sale-tag {
+  background-color: #ffe0b2;
+  color: var(--exp-warning);
+  border: 1px solid var(--exp-warning);
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 8px;
+  margin-right: 8px;
+}
+
+/* Navigation */
+.exp-nav {
+  background-color: var(--expedia-white);
+  box-shadow: var(--exp-shadow-small);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.exp-nav-logo {
+  color: var(--expedia-blue);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.exp-nav-items {
+  display: flex;
+  gap: 24px;
+}
+
+.exp-nav-item {
+  color: var(--expedia-grey-dark);
+  font-weight: 600;
+  text-decoration: none;
+  position: relative;
+  padding: 8px 0;
+  margin: 0 8px;
+  color: #333;
+  font-weight: 500;
+}
+
+.exp-nav-item:hover {
+  color: var(--exp-primary);
+}
+
+.exp-nav-item.active {
+  color: var(--exp-primary);
+  font-weight: 600;
+}
+
+.exp-nav-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background-color: var(--expedia-blue);
+}
+
+.exp-nav-brand {
+  color: var(--exp-primary);
+  font-weight: 700;
+  font-size: 24px;
+}
+
+.exp-nav-link {
+  color: var(--exp-dark-gray);
+  font-weight: 600;
+  margin: 0 12px;
+}
+
+.exp-nav-link:hover {
+  color: var(--exp-secondary);
+}
+
+.exp-nav-link.active {
+  color: var(--exp-secondary);
+  border-bottom: 2px solid var(--exp-secondary);
+}
+
+.exp-header {
+  background-color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  height: 70px;
+  padding: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.exp-logo {
+  height: 36px;
+  margin-right: 20px;
+}
+
+/* Footer */
+.exp-footer {
+  background-color: var(--expedia-blue-dark);
+  color: var(--expedia-white);
+  padding: 48px 24px 24px;
+}
+
+.exp-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.exp-footer-section {
+  flex: 1;
+  min-width: 200px;
+}
+
+.exp-footer-title {
+  font-weight: 700;
+  margin-bottom: 16px;
+  font-size: 18px;
+}
+
+.exp-footer-link {
+  color: #a0c3ff;
+  display: block;
+  margin-bottom: 8px;
+  text-decoration: none;
+}
+
+.exp-footer-link:hover {
+  color: var(--expedia-white);
+  text-decoration: underline;
+}
+
+.exp-footer-bottom {
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  text-align: center;
+  font-size: 14px;
+}
+
+.exp-footer {
+  background: #292929;
+  color: #f5f5f5;
+  padding: 40px 0;
+}
+
+.exp-footer-title {
+  color: white !important;
+  margin-bottom: 20px !important;
+  font-weight: 600 !important;
+}
+
+.exp-footer-link {
+  display: block;
+  color: #d9d9d9;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.exp-footer-link:hover {
+  color: white;
+}
+
+/* Utilities */
+.exp-mt-1 { margin-top: 8px; }
+.exp-mt-2 { margin-top: 16px; }
+.exp-mt-3 { margin-top: 24px; }
+.exp-mt-4 { margin-top: 32px; }
+
+.exp-mb-1 { margin-bottom: 8px; }
+.exp-mb-2 { margin-bottom: 16px; }
+.exp-mb-3 { margin-bottom: 24px; }
+.exp-mb-4 { margin-bottom: 32px; }
+
+.exp-p-1 { padding: 8px; }
+.exp-p-2 { padding: 16px; }
+.exp-p-3 { padding: 24px; }
+.exp-p-4 { padding: 32px; }
+
+.exp-text-center { text-align: center; }
+.exp-text-right { text-align: right; }
+
+/* Media Queries */
+@media (max-width: 768px) {
+  .exp-hero {
+    height: 400px;
+  }
+  
+  .exp-hero-content {
+    padding: 24px;
+  }
+  
+  .exp-search-panel {
+    padding: 16px;
+  }
+  
+  .exp-heading-xl {
+    font-size: 28px;
+  }
+  
+  .exp-heading-lg {
+    font-size: 22px;
+  }
+
+  .exp-search-tabs .ant-tabs-tab {
+    padding: 8px 12px;
+  }
+
+  .exp-header {
+    height: auto;
+    padding: 12px 0;
+  }
+  
+  .exp-logo {
+    height: 28px;
+  }
+  
+  .exp-search-result-img {
+    height: 160px;
+  }
+  
+  .exp-price {
+    font-size: 20px;
+  }
+}
+
+/* Login/Signup components */
+.exp-auth-container {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+
+.exp-auth-title {
+  color: var(--exp-primary);
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.exp-auth-card {
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: var(--exp-shadow-medium);
+}
+
+/* Chat Page Elements */
+.exp-chat-container {
+  height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+}
+
+.exp-chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.exp-chat-input {
+  padding: 16px;
+  background-color: white;
+  border-top: 1px solid var(--exp-medium-gray);
+}
+
+.exp-message {
+  max-width: 75%;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border-radius: 8px;
+}
+
+.exp-message-user {
+  background-color: var(--exp-secondary);
+  color: white;
+  margin-left: auto;
+}
+
+.exp-message-assistant {
+  background-color: var(--exp-light-gray);
+  color: var(--exp-primary);
+}
+
+/* Booking components */
+.exp-search-result {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 16px;
+  overflow: hidden;
+  background: white;
+}
+
+.exp-search-result-img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+}
+
+.exp-search-result-content {
+  padding: 16px;
+}
+
+.exp-price {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--exp-primary);
+}
+
+.exp-price-note {
+  font-size: 12px;
+  color: var(--exp-dark-gray);
+}
+
+/* Loading animations */
+.exp-skeleton {
+  border-radius: 8px;
+  overflow: hidden;
+}

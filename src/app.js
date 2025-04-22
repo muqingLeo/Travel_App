@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ConfigProvider, App as AntApp } from 'antd';
 import { I18nextProvider } from 'react-i18next';
-import i18n from './utils/i18n';
+import i18n, { theme } from './utils/i18n';
 
 // Pages
 import Home from './pages/home/home';
@@ -23,6 +23,7 @@ import { ItineraryProvider } from './contexts/ItineraryContext';
 
 // Styles
 import './styles/app.css';
+import './styles/expedia.css'; // Import Expedia styles
 
 const App = () => {
   useEffect(() => {
@@ -39,9 +40,14 @@ const App = () => {
       <ConfigProvider
         theme={{
           token: {
-            colorPrimary: '#1890ff',
-            borderRadius: 6,
-            fontFamily: "'Poppins', -apple-system, BlinkMacSystemFont, sans-serif",
+            colorPrimary: '#1668e3', // Expedia blue
+            colorSuccess: '#2ecc40',
+            colorWarning: '#f39c12',
+            colorError: '#e74c3c',
+            colorTextBase: '#333333',
+            borderRadius: 4,
+            colorBgContainer: '#ffffff',
+            fontFamily: "'Open Sans', 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
           },
         }}
       >

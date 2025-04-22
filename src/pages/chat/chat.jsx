@@ -14,7 +14,8 @@ import {
   List,
   Tooltip,
   Skeleton,
-  message
+  message,
+  Radio
 } from 'antd';
 import {
   SendOutlined,
@@ -27,10 +28,13 @@ import {
   InfoCircleOutlined,
   GlobalOutlined,
   PushpinOutlined,
-  LoadingOutlined
+  LoadingOutlined,
+  EnvironmentOutlined,
+  SettingOutlined
 } from '@ant-design/icons';
 import styled from 'styled-components';
 import { useAuth } from '../../contexts/AuthContext';
+import aiService from '../../services/aiService';
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -128,6 +132,14 @@ const RecSuggestion = styled(Card)`
   }
 `;
 
+// AI Settings Panel
+const SettingsPanel = styled(Card)`
+  margin-top: 12px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+`;
+
 // Mock data for languages
 const languages = [
   { value: 'en', label: 'English' },
@@ -138,6 +150,13 @@ const languages = [
   { value: 'de', label: 'German' }
 ];
 
+// AI provider options
+const aiProviders = [
+  { label: 'ChatGPT (OpenAI)', value: 'openai' },
+  { label: 'Claude (Anthropic)', value: 'anthropic' },
+  { label: 'Grok', value: 'xprovider' }
+];
+
 // Main Chat Component
 const Chat = () => {
   const { t } = useTranslation();
@@ -146,6 +165,8 @@ const Chat = () => {
   const [inputValue, setInputValue] = useState('');
   const [loading, setLoading] = useState(false);
   const [language, setLanguage] = useState('en');
+  const [aiProvider, setAiProvider] = useState(aiService.AI_PROVIDERS.OPENAI);
+  const [showSettings, setShowSettings] = useState(false);
   const messagesEndRef = useRef(null);
   const [initialLoad, setInitialLoad] = useState(true);
   const [suggestions, setSuggestions] = useState([]);
@@ -207,236 +228,371 @@ const Chat = () => {
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
     setLoading(true);
+    setSuggestions([]);
     
-    // Simulate AI response delay
-    setTimeout(async () => {
-      try {
-        // In a real app, you would call your backend API here
-        // to process the message and get a response from the AI
-        
-        // Simulate different types of responses based on user input
-        let aiResponse;
-        
-        if (text.toLowerCase().includes('itinerary') || text.toLowerCase().includes('plan')) {
-          // Itinerary recommendation
-          aiResponse = {
-            id: `msg-${Date.now()}-ai`,
-            text: "Based on your interests and the season, I'd recommend the following itinerary:",
-            sender: 'assistant',
-            timestamp: new Date(),
-            attachment: {
-              type: 'itinerary',
-              data: {
-                title: '3-Day Tokyo Exploration',
-                days: [
-                  {
-                    day: 1,
-                    activities: [
-                      { time: '9:00 AM', activity: 'Visit Senso-ji Temple', note: 'Historical Buddhist temple' },
-                      { time: '12:00 PM', activity: 'Lunch in Asakusa', note: 'Try local ramen' },
-                      { time: '2:00 PM', activity: 'Tokyo Skytree', note: 'Observation deck for city views' },
-                      { time: '6:00 PM', activity: 'Dinner in Shibuya', note: 'Experience the famous crossing' }
-                    ]
-                  },
-                  {
-                    day: 2,
-                    activities: [
-                      { time: '10:00 AM', activity: 'Meiji Shrine', note: 'Peaceful shrine in the city' },
-                      { time: '1:00 PM', activity: 'Harajuku Exploration', note: 'Unique fashion district' },
-                      { time: '4:00 PM', activity: 'Shinjuku Gyoen Park', note: 'Beautiful gardens' },
-                      { time: '7:00 PM', activity: 'Izakaya experience', note: 'Traditional Japanese pub' }
-                    ]
-                  },
-                  {
-                    day: 3,
-                    activities: [
-                      { time: '9:00 AM', activity: 'Tokyo Fish Market', note: 'Fresh seafood and local culture' },
-                      { time: '12:00 PM', activity: 'Sushi-making class', note: 'Learn from local chefs' },
-                      { time: '3:00 PM', activity: 'Akihabara', note: 'Electronics and anime district' },
-                      { time: '6:00 PM', activity: 'Robot Restaurant', note: 'Unique entertainment experience' }
-                    ]
-                  }
-                ]
-              }
-            }
-          };
-        } else if (text.toLowerCase().includes('hotel') || text.toLowerCase().includes('stay') || text.toLowerCase().includes('accommodation')) {
-          // Hotel recommendation
-          aiResponse = {
-            id: `msg-${Date.now()}-ai`,
-            text: "I found some highly-rated accommodations that might suit your preferences:",
-            sender: 'assistant',
-            timestamp: new Date(),
-            attachment: {
-              type: 'accommodation',
-              data: [
-                {
-                  name: 'Grand Hyatt Tokyo',
-                  location: 'Roppongi, Tokyo',
-                  price: '$$$',
-                  rating: 4.7,
-                  features: ['Spa', 'Pool', 'Multiple restaurants', 'Near attractions'],
-                  image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945'
-                },
-                {
-                  name: 'Citadines Shinjuku',
-                  location: 'Shinjuku, Tokyo',
-                  price: '$$',
-                  rating: 4.5,
-                  features: ['Apartment-style', 'Kitchenette', 'Laundry facilities', 'Close to transit'],
-                  image: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39'
-                },
-                {
-                  name: 'UNPLAN Kagurazaka',
-                  location: 'Kagurazaka, Tokyo',
-                  price: '$',
-                  rating: 4.8,
-                  features: ['Hostel', 'Social atmosphere', 'Breakfast included', 'Great for solo travelers'],
-                  image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427'
-                }
-              ]
-            }
-          };
-        } else if (text.toLowerCase().includes('weather') || text.toLowerCase().includes('temperature') || text.toLowerCase().includes('season')) {
-          // Weather information
-          aiResponse = {
-            id: `msg-${Date.now()}-ai`,
-            text: "Here's the current and forecast weather information:",
-            sender: 'assistant',
-            timestamp: new Date(),
-            attachment: {
-              type: 'weather',
-              data: {
-                location: 'Tokyo, Japan',
-                current: {
-                  temp: 22,
-                  condition: 'Partly Cloudy',
-                  humidity: 65,
-                  wind: '8 km/h'
-                },
-                forecast: [
-                  { day: 'Tomorrow', high: 24, low: 18, condition: 'Sunny' },
-                  { day: 'Wednesday', high: 26, low: 19, condition: 'Clear' },
-                  { day: 'Thursday', high: 23, low: 17, condition: 'Light Rain' },
-                  { day: 'Friday', high: 21, low: 16, condition: 'Cloudy' },
-                  { day: 'Saturday', high: 22, low: 17, condition: 'Partly Cloudy' }
-                ],
-                advice: "Spring is a beautiful time to visit Tokyo. Cherry blossoms typically bloom in late March to early April. Pack layers as temperatures can vary throughout the day."
-              }
-            }
-          };
-        } else {
-          // Regular text response
-          aiResponse = {
-            id: `msg-${Date.now()}-ai`,
-            text: generateResponse(text),
-            sender: 'assistant',
-            timestamp: new Date(),
-          };
-          
-          // Add follow-up suggestions after some replies
-          if (Math.random() > 0.5) {
-            setSuggestions([
-              "Tell me about local customs",
-              "What should I pack?",
-              "Any safety tips for this area?"
-            ]);
-          } else {
-            setSuggestions([]);
-          }
-        }
-        
-        // Add AI response to messages
-        setMessages(prev => [...prev, aiResponse]);
-        
-      } catch (error) {
-        console.error('Error sending message:', error);
-        message.error('Failed to send message. Please try again.');
-      } finally {
-        setLoading(false);
+    try {
+      // First, analyze the content to determine if we need to fetch structured data
+      const analysis = await aiService.analyzeMessageContent(text);
+      
+      // Get the AI response
+      const userContext = user?.preferences ? { preferences: user.preferences } : {};
+      const aiResponseText = await aiService.getAIResponse(text, userContext);
+      
+      // Create base AI response
+      let aiResponse = {
+        id: `msg-${Date.now()}-ai`,
+        text: aiResponseText,
+        sender: 'assistant',
+        timestamp: new Date(),
+      };
+      
+      // If the message has a specific type, add appropriate attachments
+      // In a real implementation, this would use structured outputs from the AI model
+      // or separate API calls to get the structured data
+      if (analysis.type === 'itinerary' && analysis.destination) {
+        // In a real app, you would use the AI's response to generate this data
+        // or make API calls to fetch real itineraries based on the user's query
+        aiResponse.attachment = createItineraryAttachment(analysis.destination);
+      } else if (analysis.type === 'accommodation' && analysis.destination) {
+        aiResponse.attachment = createAccommodationAttachment(analysis.destination);
+      } else if (analysis.type === 'weather' && analysis.destination) {
+        aiResponse.attachment = createWeatherAttachment(analysis.destination);
       }
-    }, 1500);
+      
+      // Add AI response to messages
+      setMessages(prev => [...prev, aiResponse]);
+      
+      // Sometimes add follow-up suggestions based on the query
+      if (Math.random() > 0.5) {
+        setSuggestions(getFollowUpSuggestions(text, analysis));
+      }
+      
+    } catch (error) {
+      console.error('Error sending message:', error);
+      message.error('Failed to get a response. Please try again.');
+      
+      // Add an error message
+      setMessages(prev => [
+        ...prev, 
+        {
+          id: `msg-${Date.now()}-error`,
+          text: "I'm sorry, I'm having trouble connecting to my knowledge base right now. Please try again in a moment.",
+          sender: 'assistant',
+          timestamp: new Date(),
+        }
+      ]);
+    } finally {
+      setLoading(false);
+    }
   };
-
-  // Generate a more intelligent response based on input text
-  const generateResponse = (text) => {
+  
+  // Helper functions for structured attachments
+  // In a real app, these would be based on actual data from APIs
+  
+  const createItineraryAttachment = (destination) => {
+    const destinations = {
+      'tokyo': {
+        title: '3-Day Tokyo Exploration',
+        days: [
+          {
+            day: 1,
+            activities: [
+              { time: '9:00 AM', activity: 'Visit Senso-ji Temple', note: 'Historical Buddhist temple' },
+              { time: '12:00 PM', activity: 'Lunch in Asakusa', note: 'Try local ramen' },
+              { time: '2:00 PM', activity: 'Tokyo Skytree', note: 'Observation deck for city views' },
+              { time: '6:00 PM', activity: 'Dinner in Shibuya', note: 'Experience the famous crossing' }
+            ]
+          },
+          {
+            day: 2,
+            activities: [
+              { time: '10:00 AM', activity: 'Meiji Shrine', note: 'Peaceful shrine in the city' },
+              { time: '1:00 PM', activity: 'Harajuku Exploration', note: 'Unique fashion district' },
+              { time: '4:00 PM', activity: 'Shinjuku Gyoen Park', note: 'Beautiful gardens' },
+              { time: '7:00 PM', activity: 'Izakaya experience', note: 'Traditional Japanese pub' }
+            ]
+          },
+          {
+            day: 3,
+            activities: [
+              { time: '9:00 AM', activity: 'Tokyo Fish Market', note: 'Fresh seafood and local culture' },
+              { time: '12:00 PM', activity: 'Sushi-making class', note: 'Learn from local chefs' },
+              { time: '3:00 PM', activity: 'Akihabara', note: 'Electronics and anime district' },
+              { time: '6:00 PM', activity: 'Robot Restaurant', note: 'Unique entertainment experience' }
+            ]
+          }
+        ]
+      },
+      'paris': {
+        title: '3-Day Paris Exploration',
+        days: [
+          {
+            day: 1,
+            activities: [
+              { time: '9:00 AM', activity: 'Eiffel Tower', note: 'Go early to avoid crowds' },
+              { time: '12:00 PM', activity: 'Lunch in Saint-Germain', note: 'Try a classic French bistro' },
+              { time: '2:00 PM', activity: 'Louvre Museum', note: 'Home to the Mona Lisa' },
+              { time: '7:00 PM', activity: 'Seine River Cruise', note: 'Beautiful views at sunset' }
+            ]
+          },
+          {
+            day: 2,
+            activities: [
+              { time: '10:00 AM', activity: 'Montmartre & Sacré-Cœur', note: 'Bohemian district with great views' },
+              { time: '1:00 PM', activity: 'Lunch at Moulin de la Galette', note: 'Historic windmill restaurant' },
+              { time: '3:00 PM', activity: 'Musée d\'Orsay', note: 'Impressionist masterpieces' },
+              { time: '7:00 PM', activity: 'Le Marais district', note: 'Trendy shops and restaurants' }
+            ]
+          },
+          {
+            day: 3,
+            activities: [
+              { time: '9:00 AM', activity: 'Notre-Dame Cathedral', note: 'Gothic masterpiece' },
+              { time: '11:00 AM', activity: 'Luxembourg Gardens', note: 'Beautiful park with historic palace' },
+              { time: '2:00 PM', activity: 'Centre Pompidou', note: 'Modern and contemporary art' },
+              { time: '7:00 PM', activity: 'Farewell dinner in Latin Quarter', note: 'Lively historic area' }
+            ]
+          }
+        ]
+      }
+    };
+    
+    // Default if no matching destination
+    const defaultItinerary = {
+      title: '3-Day Custom Exploration',
+      days: [
+        {
+          day: 1,
+          activities: [
+            { time: 'Morning', activity: 'Explore main attractions', note: 'Visit key landmarks' },
+            { time: 'Afternoon', activity: 'Cultural experience', note: 'Museums or historical sites' },
+            { time: 'Evening', activity: 'Local dining', note: 'Try authentic cuisine' }
+          ]
+        },
+        {
+          day: 2,
+          activities: [
+            { time: 'Morning', activity: 'Outdoor activities', note: 'Parks or nature' },
+            { time: 'Afternoon', activity: 'Shopping & markets', note: 'Local goods and souvenirs' },
+            { time: 'Evening', activity: 'Entertainment', note: 'Shows or nightlife' }
+          ]
+        },
+        {
+          day: 3,
+          activities: [
+            { time: 'Morning', activity: 'Off the beaten path', note: 'Hidden gems' },
+            { time: 'Afternoon', activity: 'Relaxation', note: 'Spa or leisurely activities' },
+            { time: 'Evening', activity: 'Farewell experience', note: 'Special dinner or event' }
+          ]
+        }
+      ]
+    };
+    
+    return {
+      type: 'itinerary',
+      data: destinations[destination] || defaultItinerary
+    };
+  };
+  
+  const createAccommodationAttachment = (destination) => {
+    const accommodations = {
+      'tokyo': [
+        {
+          name: 'Grand Hyatt Tokyo',
+          location: 'Roppongi, Tokyo',
+          price: '$$$',
+          rating: 4.7,
+          features: ['Spa', 'Pool', 'Multiple restaurants', 'Near attractions'],
+          image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945'
+        },
+        {
+          name: 'Citadines Shinjuku',
+          location: 'Shinjuku, Tokyo',
+          price: '$$',
+          rating: 4.5,
+          features: ['Apartment-style', 'Kitchenette', 'Laundry facilities', 'Close to transit'],
+          image: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39'
+        },
+        {
+          name: 'UNPLAN Kagurazaka',
+          location: 'Kagurazaka, Tokyo',
+          price: '$',
+          rating: 4.8,
+          features: ['Hostel', 'Social atmosphere', 'Breakfast included', 'Great for solo travelers'],
+          image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427'
+        }
+      ],
+      'paris': [
+        {
+          name: 'Hôtel Plaza Athénée',
+          location: 'Avenue Montaigne, 8th Arr.',
+          price: '$$$',
+          rating: 4.9,
+          features: ['Luxury', 'Michelin star restaurant', 'Spa', 'Eiffel Tower views'],
+          image: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa'
+        },
+        {
+          name: 'Le Pavillon de la Reine',
+          location: 'Le Marais, 3rd Arr.',
+          price: '$$',
+          rating: 4.7,
+          features: ['Boutique', 'Historic building', 'Spa', 'Central location'],
+          image: 'https://images.unsplash.com/photo-1551632436-cbf726cbfb7c'
+        },
+        {
+          name: 'Generator Paris',
+          location: 'Canal Saint-Martin, 10th Arr.',
+          price: '$',
+          rating: 4.3,
+          features: ['Hostel', 'Modern design', 'Bar/lounge', 'Budget-friendly'],
+          image: 'https://images.unsplash.com/photo-1596701062351-8c2c14d1fdd0'
+        }
+      ]
+    };
+    
+    // Default accommodations if no matching destination
+    const defaultAccommodations = [
+      {
+        name: 'Luxury Hotel Option',
+        location: 'City Center',
+        price: '$$$',
+        rating: 4.8,
+        features: ['5-star service', 'Fine dining', 'Spa facilities', 'Premium location'],
+        image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb'
+      },
+      {
+        name: 'Mid-Range Boutique',
+        location: 'Popular District',
+        price: '$$',
+        rating: 4.5,
+        features: ['Unique design', 'Great value', 'Local character', 'Helpful staff'],
+        image: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4'
+      },
+      {
+        name: 'Budget-Friendly Stay',
+        location: 'Convenient Area',
+        price: '$',
+        rating: 4.2,
+        features: ['Affordable', 'Clean rooms', 'Basic amenities', 'Good location'],
+        image: 'https://images.unsplash.com/photo-1548802673-380ab8ebc7b7'
+      }
+    ];
+    
+    return {
+      type: 'accommodation',
+      data: accommodations[destination] || defaultAccommodations
+    };
+  };
+  
+  const createWeatherAttachment = (destination) => {
+    const weatherData = {
+      'tokyo': {
+        location: 'Tokyo, Japan',
+        current: {
+          temp: 22,
+          condition: 'Partly Cloudy',
+          humidity: 65,
+          wind: '8 km/h'
+        },
+        forecast: [
+          { day: 'Tomorrow', high: 24, low: 18, condition: 'Sunny' },
+          { day: 'Wednesday', high: 26, low: 19, condition: 'Clear' },
+          { day: 'Thursday', high: 23, low: 17, condition: 'Light Rain' },
+          { day: 'Friday', high: 21, low: 16, condition: 'Cloudy' },
+          { day: 'Saturday', high: 22, low: 17, condition: 'Partly Cloudy' }
+        ],
+        advice: "Spring is a beautiful time to visit Tokyo. Cherry blossoms typically bloom in late March to early April. Pack layers as temperatures can vary throughout the day."
+      },
+      'paris': {
+        location: 'Paris, France',
+        current: {
+          temp: 18,
+          condition: 'Clear',
+          humidity: 55,
+          wind: '10 km/h'
+        },
+        forecast: [
+          { day: 'Tomorrow', high: 20, low: 12, condition: 'Sunny' },
+          { day: 'Wednesday', high: 22, low: 13, condition: 'Partly Cloudy' },
+          { day: 'Thursday', high: 19, low: 11, condition: 'Light Rain' },
+          { day: 'Friday', high: 17, low: 10, condition: 'Showers' },
+          { day: 'Saturday', high: 18, low: 11, condition: 'Partly Cloudy' }
+        ],
+        advice: "Paris in spring offers mild temperatures and fewer crowds than summer. The city's gardens and parks are beautiful this time of year. Be prepared for occasional rain showers and pack a light jacket."
+      }
+    };
+    
+    // Default weather if no matching destination
+    const defaultWeather = {
+      location: 'Your Destination',
+      current: {
+        temp: 20,
+        condition: 'Variable',
+        humidity: 60,
+        wind: '10 km/h'
+      },
+      forecast: [
+        { day: 'Tomorrow', high: 22, low: 15, condition: 'Partly Cloudy' },
+        { day: 'Day 3', high: 23, low: 16, condition: 'Mostly Sunny' },
+        { day: 'Day 4', high: 21, low: 14, condition: 'Chance of Rain' },
+        { day: 'Day 5', high: 20, low: 13, condition: 'Variable' },
+        { day: 'Day 6', high: 21, low: 14, condition: 'Partly Cloudy' }
+      ],
+      advice: "Weather can vary, so check the forecast closer to your trip. Pack versatile clothing and be prepared for both sunny and rainy conditions."
+    };
+    
+    return {
+      type: 'weather',
+      data: weatherData[destination] || defaultWeather
+    };
+  };
+  
+  // Generate follow-up suggestions based on the query
+  const getFollowUpSuggestions = (text, analysis) => {
     const lowerText = text.toLowerCase();
     
-    // Location-specific responses
-    if (lowerText.includes('tokyo') || lowerText.includes('japan')) {
-      if (lowerText.includes('food') || lowerText.includes('eat') || lowerText.includes('restaurant')) {
-        return "Tokyo is a food paradise! I recommend trying these authentic dishes: Sushi at Tsukiji Market, Ramen in Shinjuku, and Yakitori in Omoide Yokocho. For a special experience, try a traditional kaiseki meal. Would you like specific restaurant recommendations in Tokyo?";
-      } else if (lowerText.includes('stay') || lowerText.includes('hotel') || lowerText.includes('accommodation')) {
-        return "For accommodation in Tokyo, I recommend staying in Shinjuku for convenient transport links and nightlife, Shibuya for shopping and youth culture, or Asakusa for a more traditional atmosphere. Hotels range from $80-300 per night, and ryokans (traditional inns) offer a unique cultural experience. Would you like me to find specific options based on your budget?";
-      } else if (lowerText.includes('transport') || lowerText.includes('getting around')) {
-        return "Tokyo has one of the world's best public transport systems. I recommend getting a SUICA or PASMO card for convenient travel. The subway and JR lines connect all major areas. For day trips, consider the JR Pass if you're planning to visit multiple cities. Taxis are clean and reliable but expensive. Would you like me to explain the route from the airport to your hotel?";
-      } else {
-        return "Tokyo is an amazing blend of ultramodern and traditional. Top attractions include the Tokyo Skytree, Senso-ji Temple in Asakusa, the Shibuya Crossing, and Meiji Shrine. If you're visiting between late March and early April, the cherry blossoms are spectacular! What specific aspects of Tokyo are you most interested in exploring?";
-      }
+    // Destination-specific suggestions
+    if (analysis.destination === 'tokyo' || lowerText.includes('japan')) {
+      return [
+        "What local dishes should I try in Tokyo?",
+        "Best time to see cherry blossoms in Japan?",
+        "How to use the Tokyo subway system?"
+      ];
+    } else if (analysis.destination === 'paris' || lowerText.includes('france')) {
+      return [
+        "What are the must-see museums in Paris?",
+        "Tips for visiting the Eiffel Tower",
+        "Day trips from Paris"
+      ];
     }
     
-    // Paris-specific responses
-    else if (lowerText.includes('paris') || lowerText.includes('france')) {
-      if (lowerText.includes('food') || lowerText.includes('eat') || lowerText.includes('restaurant')) {
-        return "Paris is renowned for its cuisine! Beyond the classic French bistros, I recommend trying small patisseries for breakfast, enjoying a leisurely lunch at a sidewalk café, and experiencing dinner at a traditional brasserie. For the best experience, try escargot, coq au vin, and definitely don't miss the pastries! Would you like specific restaurant recommendations by arrondissement?";
-      } else if (lowerText.includes('stay') || lowerText.includes('hotel') || lowerText.includes('accommodation')) {
-        return "For accommodation in Paris, the Marais offers central charm, Saint-Germain-des-Prés is perfect for a classic Parisian experience, and Montmartre provides bohemian vibes with great views. Consider boutique hotels for authentic character or apartments for a local experience. What's your budget range and preferred neighborhood?";
-      } else if (lowerText.includes('transport') || lowerText.includes('getting around')) {
-        return "Paris is best explored by a combination of walking and metro. The metro system is extensive with 16 lines covering the entire city. Consider getting a Paris Visite pass for unlimited travel. For a scenic experience, try the Batobus boat service along the Seine. Walking is ideal for central areas to discover hidden gems. Would you like tips on navigating from Charles de Gaulle airport to the city?";
-      } else {
-        return "Paris offers incredible experiences beyond the famous Eiffel Tower and Louvre! I recommend exploring Montmartre at sunset, taking a Seine river cruise, visiting the hidden Promenade Plantée, and enjoying the Luxembourg Gardens. For a less crowded experience, consider the Musée d'Orsay instead of the Louvre. What aspects of Parisian culture interest you most?";
-      }
-    }
-
-    // Activity-specific responses
-    else if (lowerText.includes('hiking') || lowerText.includes('outdoor') || lowerText.includes('nature')) {
-      return "For outstanding hiking and outdoor experiences, I'd recommend New Zealand's Milford Track, Peru's Inca Trail, Norway's fjords, or Japan's Kumano Kodo. The best hiking seasons depend on the location - would you like recommendations for a specific region or climate? I can help you plan the perfect outdoor adventure based on your experience level and preferences.";
-    } else if (lowerText.includes('beach') || lowerText.includes('island')) {
-      return "For beach destinations, consider the crystal waters of Maldives, the diverse coastlines of Thailand, the cultural blend of Bali, or the pristine beaches of Seychelles. Each offers different experiences from luxury resorts to backpacker-friendly spots. What type of beach experience are you looking for - relaxation, water sports, nightlife, or cultural immersion?";
-    } else if (lowerText.includes('family') || lowerText.includes('kids') || lowerText.includes('children')) {
-      return "Family-friendly destinations I recommend include Japan for its safety and fascinating culture, Costa Rica for wildlife and adventure, Italy for food and history that kids will enjoy, and Singapore for its cleanliness and attractions like Gardens by the Bay. What ages are the children traveling with you? I can tailor recommendations based on their interests and your family's travel style.";
-    }
-    
-    // Budget-specific responses
-    else if (lowerText.includes('budget') || lowerText.includes('cost') || lowerText.includes('expensive') || lowerText.includes('cheap')) {
-      return "Travel budgeting varies greatly by destination. Southeast Asia, Central America, and Eastern Europe offer great value. For example, in Thailand, you could budget $30-50/day backpacking or $100-200/day for mid-range travel. Western Europe and Japan are pricier at $100-150/day minimum. What's your comfort level and which regions are you considering? I can provide a detailed budget breakdown for specific destinations.";
+    // Query type suggestions
+    if (analysis.type === 'itinerary') {
+      return [
+        "Can you adjust this for a family with kids?",
+        "How much should I budget for this itinerary?",
+        "Add more cultural activities to this plan"
+      ];
+    } else if (analysis.type === 'accommodation') {
+      return [
+        "Show me more budget options",
+        "What areas are best for nightlife?",
+        "Are these options close to public transportation?"
+      ];
+    } else if (analysis.type === 'weather') {
+      return [
+        "What should I pack for this weather?",
+        "Best indoor activities for rainy days",
+        "When is the best season to visit?"
+      ];
     }
     
-    // Safety and practical advice
-    else if (lowerText.includes('safe') || lowerText.includes('safety') || lowerText.includes('danger')) {
-      return "Safety is an important consideration! Generally, Japan, New Zealand, Switzerland, Portugal, and Singapore rank among the safest countries for travelers. Always research your specific destination, secure travel insurance, register with your embassy, and stay aware of your surroundings. For any particular destination you're concerned about, I can provide specific safety information and precautions.";
-    } else if (lowerText.includes('pack') || lowerText.includes('packing') || lowerText.includes('luggage')) {
-      return "Packing efficiently is crucial for enjoyable travel! Always research weather at your destination, pack versatile clothing layers, bring comfortable walking shoes, and don't forget adapters and essential medications. I recommend packing cubes to stay organized. Are you looking for a packing list for a specific destination or climate? I can customize recommendations based on your trip details.";
-    } else if (lowerText.includes('visa') || lowerText.includes('passport')) {
-      return "Visa requirements vary based on your citizenship and destination. Always check requirements at least 3 months before travel, ensure your passport is valid for at least 6 months beyond your trip, and keep digital copies of all important documents. Would you like me to provide specific visa information for a particular destination based on your nationality?";
-    }
-    
-    // Greeting responses
-    else if (lowerText.includes('hello') || lowerText.includes('hi') || lowerText.includes('hey') || lowerText.includes('greetings')) {
-      return "Hello there! I'm your personal travel assistant ready to help plan your perfect trip. I can provide destination recommendations, create custom itineraries, offer budget advice, or answer specific travel questions. What type of travel experience are you looking for today?";
-    } else if (lowerText.includes('thank')) {
-      return "You're very welcome! I'm happy to help make your travel experiences amazing. Is there anything else you'd like to know about your destination or trip planning?";
-    }
-    
-    // Seasonal travel responses
-    else if (lowerText.includes('summer') || lowerText.includes('winter') || lowerText.includes('spring') || lowerText.includes('fall') || lowerText.includes('autumn') || (lowerText.includes('best') && lowerText.includes('time'))) {
-      if (lowerText.includes('summer')) {
-        return "Great summer destinations include the Greek Islands for beautiful beaches, Norway for midnight sun experiences, Canada for outdoor adventures, and New Zealand for skiing in their winter season. What type of summer experience are you looking for - beach relaxation, cultural exploration, or outdoor activities?";
-      } else if (lowerText.includes('winter')) {
-        return "Winter travel offers unique experiences! Consider Japan for amazing powder skiing, Finland or Norway for the Northern Lights, New Zealand for summer experiences during northern winter, or Southeast Asia for warm tropical escapes. Are you looking for winter sports destinations or trying to escape the cold?";
-      } else if (lowerText.includes('spring') || (lowerText.includes('cherry') && lowerText.includes('blossom'))) {
-        return "Spring is beautiful in many destinations. Japan's cherry blossoms (late March-early April) are spectacular, Netherlands' tulip season (mid-April) is stunning, and the Mediterranean offers pleasant temperatures for exploring. What spring experiences interest you most?";
-      } else if (lowerText.includes('fall') || lowerText.includes('autumn')) {
-        return "Fall/autumn travel offers colorful foliage and fewer crowds. Consider New England in the US, Kyoto in Japan, the Scottish Highlands, or Bavaria in Germany for stunning autumn colors. It's also wine harvest season in many regions! What type of fall experience interests you most?";
-      } else {
-        return "The best time to visit depends on your destination and preferences. Would you like recommendations for a specific location? I can provide details on peak seasons, shoulder seasons (often the best balance of good weather and fewer crowds), and off-seasons with better rates.";
-      }
-    }
-
-    // Generic but still helpful response if no specific triggers matched
-    else {
-      return "I'd be happy to help with your travel questions! I can provide personalized recommendations on destinations, accommodations, activities, transportation, local customs, or seasonal advice. To give you the most helpful information, could you share a bit more about what you're looking for? What kind of experience interests you most, and do you have specific destinations in mind?";
-    }
+    // Default suggestions
+    return [
+      "Tell me about local customs",
+      "What should I pack?",
+      "Any safety tips for travelers?"
+    ];
   };
 
   // Render Attachments based on type
@@ -570,15 +726,49 @@ const Chat = () => {
           </div>
         </div>
         
-        <Select
-          value={language}
-          onChange={setLanguage}
-          style={{ width: 120 }}
-          options={languages}
-          dropdownMatchSelectWidth={false}
-          suffixIcon={<GlobalOutlined />}
-        />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Select
+            value={language}
+            onChange={setLanguage}
+            style={{ width: 120 }}
+            options={languages}
+            dropdownMatchSelectWidth={false}
+            suffixIcon={<GlobalOutlined />}
+          />
+          <Tooltip title="AI Settings">
+            <Button 
+              type="text" 
+              icon={<SettingOutlined />} 
+              onClick={() => setShowSettings(!showSettings)}
+            />
+          </Tooltip>
+        </div>
       </ChatHeader>
+      
+      {showSettings && (
+        <SettingsPanel>
+          <Card.Meta
+            title="AI Model Settings"
+            description="Choose which AI model powers your travel assistant"
+          />
+          <div style={{ marginTop: 16 }}>
+            <Radio.Group 
+              value={aiProvider} 
+              onChange={(e) => {
+                setAiProvider(e.target.value);
+                aiService.setAIProvider(e.target.value);
+                message.success(`Switched to ${aiProviders.find(p => p.value === e.target.value).label}`);
+              }}
+            >
+              {aiProviders.map(provider => (
+                <Radio key={provider.value} value={provider.value}>
+                  {provider.label}
+                </Radio>
+              ))}
+            </Radio.Group>
+          </div>
+        </SettingsPanel>
+      )}
       
       <MessagesContainer>
         {messages.length === 0 ? (
