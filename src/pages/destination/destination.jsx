@@ -18,7 +18,8 @@ import {
   Table,
   Modal,
   message,
-  Carousel
+  Carousel,
+  Tooltip
 } from 'antd';
 import { 
   EnvironmentOutlined, 
@@ -36,11 +37,12 @@ import {
   SyncOutlined,
   CameraOutlined,
   GlobalOutlined,
-  TranslationOutlined
+  TranslationOutlined,
+  ClockCircleOutlined
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
-import { getDestinationById, getHotelPriceComparisons, getAttractions, getRealTimeDestinationImages } from '../../services/travelApi';
+import { getDestinationById, getHotelPriceComparisons, getAttractions, getRealTimeDestinationImages, getRealTimeAttractionImages } from '../../services/travelApi';
 import { useLocale } from '../../contexts/LocaleContext';
 
 const { Title, Paragraph, Text } = Typography;
@@ -169,6 +171,9 @@ const Destination = () => {
   const [redirectInfo, setRedirectInfo] = useState(null);
   const [realTimeImages, setRealTimeImages] = useState([]);
   const [imagesLoading, setImagesLoading] = useState(false);
+  const [nextRefreshDate, setNextRefreshDate] = useState(null);
+  const [attractionImages, setAttractionImages] = useState({});
+  const [attractionImagesLoading, setAttractionImagesLoading] = useState(false);
 
   // Redirect countdown effect
   useEffect(() => {
@@ -254,6 +259,9 @@ const Destination = () => {
           
           // Fetch real-time images for this destination
           fetchRealTimeImages(destinationData.name);
+          
+          // Fetch real-time images for attractions
+          fetchAttractionImages(attractionsData);
         } else {
           setError(`Destination "${decodedId}" not found.`);
         }
@@ -275,20 +283,113 @@ const Destination = () => {
   
   // Function to fetch real-time images
   const fetchRealTimeImages = async (destinationName) => {
-    if (!destinationName) return;
-    
     setImagesLoading(true);
     try {
-      const imageData = await getRealTimeDestinationImages(destinationName);
-      if (imageData && imageData.images && imageData.images.length > 0) {
-        setRealTimeImages(imageData.images);
+      const result = await getRealTimeDestinationImages(destinationName);
+      if (result && result.images && result.images.length > 0) {
+        setRealTimeImages(result.images);
+        
+        // Set the next refresh date from metadata
+        if (result.metadata && result.metadata.nextRefresh) {
+          setNextRefreshDate(result.metadata.nextRefresh);
+        }
+      } else {
+        // Set a default image if no images are returned
+        if (destination && destination.image) {
+          setRealTimeImages([destination.image]);
+        }
+        message.warning("Could not load real-time images. Using default images instead.");
       }
-    } catch (error) {
-      console.error("Error fetching real-time images:", error);
-      message.error("Couldn't fetch the latest images for this destination");
+    } catch (err) {
+      console.error("Error loading real-time images:", err);
+      // Set default image on error
+      if (destination && destination.image) {
+        setRealTimeImages([destination.image]);
+      }
+      message.error("Could not load the latest images. Please try again later.");
     } finally {
       setImagesLoading(false);
     }
+  };
+  
+  // Function to fetch real-time attraction images
+  const fetchAttractionImages = async (attractionsData) => {
+    if (!attractionsData || attractionsData.length === 0) return;
+    
+    setAttractionImagesLoading(true);
+    const imagesMap = {};
+    
+    try {
+      // Process attractions in parallel for faster loading
+      const imagePromises = attractionsData.map(async (attraction) => {
+        try {
+          const result = await getRealTimeAttractionImages(attraction.name, 1);
+          if (result && result.images && result.images.length > 0) {
+            const imageUrl = result.images[0];
+            
+            // Pre-load the image to check if it's valid
+            const img = new Image();
+            img.src = imageUrl;
+            
+            await new Promise((resolve, reject) => {
+              img.onload = resolve;
+              img.onerror = reject;
+              // Set a timeout in case the image takes too long to load
+              setTimeout(reject, 5000);
+            });
+            
+            // Only add to map if image loaded successfully
+            imagesMap[attraction.id] = imageUrl;
+          }
+        } catch (error) {
+          console.error(`Error fetching/loading image for ${attraction.name}:`, error);
+          // Use the default attraction image as fallback
+          if (attraction.image) {
+            imagesMap[attraction.id] = attraction.image;
+          }
+        }
+      });
+      
+      try {
+        await Promise.all(imagePromises);
+      } catch (err) {
+        console.error("Some images failed to load:", err);
+      }
+      
+      setAttractionImages(imagesMap);
+      
+      // If we didn't get any images, show a warning
+      if (Object.keys(imagesMap).length === 0) {
+        message.warning("Could not load attraction images. Using default images instead.");
+      }
+    } catch (err) {
+      console.error("Error loading attraction images:", err);
+      message.error("Could not load all attraction images. Some default images will be used.");
+      
+      // Set default images for all attractions as fallback
+      const defaultMap = {};
+      attractionsData.forEach(attraction => {
+        if (attraction.image) {
+          defaultMap[attraction.id] = attraction.image;
+        }
+      });
+      setAttractionImages(defaultMap);
+    } finally {
+      setAttractionImagesLoading(false);
+    }
+  };
+
+  // Format the next refresh date
+  const formatRefreshDate = (dateString) => {
+    if (!dateString) return '';
+    
+    const refreshDate = new Date(dateString);
+    return refreshDate.toLocaleDateString(undefined, { 
+      weekday: 'long',
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric'
+    });
   };
 
   // Handle booking buttons
@@ -416,15 +517,19 @@ const Destination = () => {
   
   // Handle "View Details" button clicks
   const handleViewDetails = (item, type) => {
-    // For a real app, this would navigate to a details page
     let content;
-    if (type === 'attraction') {
+    
+    if (type === 'hotel') {
       content = (
         <div>
           <img 
             src={item.image} 
             alt={item.name} 
             style={{ width: '100%', height: 300, objectFit: 'cover', borderRadius: 8, marginBottom: 16 }}
+            onError={(e) => {
+              console.log("Hotel image failed to load, using fallback");
+              e.target.src = 'https://cdn.britannica.com/38/189838-050-6351B307/Iolani-Palace-Oahu-Honolulu-Hawaiian-Islands.jpg';
+            }}
           />
           <Title level={3}>{item.name}</Title>
           <Rate disabled defaultValue={item.rating} style={{ marginBottom: 16 }} />
@@ -432,27 +537,183 @@ const Destination = () => {
           <Divider />
           <Row gutter={[16, 16]}>
             <Col span={12}>
-              <Card size="small" title="Price">
-                {item.price}
+              <Card size="small" title="Booking.com">
+                ${item.bookingPrice}
               </Card>
             </Col>
             <Col span={12}>
-              <Card size="small" title="Hours">
-                {item.hours}
+              <Card size="small" title="Expedia">
+                ${item.expediaPrice}
               </Card>
             </Col>
+            {item.hotelsPrice && (
+              <Col span={12}>
+                <Card size="small" title="Hotels.com">
+                  ${item.hotelsPrice}
+                </Card>
+              </Col>
+            )}
             <Col span={24}>
               <Card size="small" title="Location">
                 {item.address}
               </Card>
             </Col>
           </Row>
+          <Divider />
+          <Text type="secondary">You'll be redirected to the booking site with the best price for your selection.</Text>
+          {redirectCountdown > 0 && (
+            <>
+              <Divider />
+              <Alert
+                message={`Redirecting to booking.com in ${redirectCountdown} seconds...`}
+                type="info"
+                showIcon
+              />
+            </>
+          )}
         </div>
       );
+      
+      // Set the redirect info
+      setRedirectInfo({ 
+        id: item.id, 
+        type: 'hotel', 
+        provider: 'booking' 
+      });
+    } else if (type === 'attraction') {
+      // Get the real-time image for this attraction if available
+      const attractionImage = attractionImages[item.id] || item.image;
+      
+      // Prepare a backup image in case the primary one fails
+      const backupImage = `https://source.unsplash.com/featured/?${encodeURIComponent(item.name)}&landmark&modal=true&date=${Date.now()}`;
+      
+      content = (
+        <div>
+          <div style={{ position: 'relative', height: 300, marginBottom: 16 }}>
+            <img 
+              src={attractionImage} 
+              alt={item.name} 
+              style={{ 
+                width: '100%', 
+                height: '100%', 
+                objectFit: 'cover', 
+                borderRadius: 8 
+              }}
+              onError={(e) => {
+                console.log("Attraction modal image failed to load, trying fallback:", e.target.src);
+                // Try to load a fallback from a different source
+                if (!e.target.src.includes('fallback') && !e.target.src.includes('modal=true')) {
+                  e.target.src = backupImage;
+                } else if (!e.target.src.includes('britannica.com')) {
+                  // Try another fallback if the first one fails
+                  e.target.src = 'https://cdn.britannica.com/69/94469-050-5ACEAD0F/Emperor-Hadrian-villa-Tivoli-Italy.jpg';
+                } else {
+                  // Final fallback to a static image
+                  e.target.src = 'https://cdn.britannica.com/38/189838-050-6351B307/Iolani-Palace-Oahu-Honolulu-Hawaiian-Islands.jpg';
+                }
+              }}
+            />
+            {/* Add a "Live" badge if using a real-time image */}
+            {attractionImages[item.id] && (
+              <div style={{
+                position: 'absolute',
+                top: 10,
+                right: 10,
+                backgroundColor: 'rgba(24, 144, 255, 0.8)',
+                color: 'white',
+                padding: '4px 12px',
+                borderRadius: '4px',
+                fontSize: '14px',
+                fontWeight: 'bold'
+              }}>
+                <SyncOutlined style={{ marginRight: 6 }} /> Live Image
+              </div>
+            )}
+          </div>
+          <Title level={3}>{item.name}</Title>
+          <Rate disabled defaultValue={item.rating} style={{ marginBottom: 16 }} />
+          <Paragraph>{item.description || 'Experience this amazing attraction during your visit.'}</Paragraph>
+          <Divider />
+          <Row gutter={[16, 16]}>
+            <Col span={12}>
+              <Card size="small" title="Price">
+                {item.price || '$25'}
+              </Card>
+            </Col>
+            <Col span={12}>
+              <Card size="small" title="Hours">
+                {item.hours || '9:00 AM - 5:00 PM daily'}
+              </Card>
+            </Col>
+            <Col span={24}>
+              <Card size="small" title="Location">
+                {item.address || 'Central location in ' + (destination ? destination.name : 'the city')}
+              </Card>
+            </Col>
+          </Row>
+          <Divider />
+          <Space>
+            <Text type="secondary">Image updates: </Text>
+            <Tag icon={<SyncOutlined spin={attractionImagesLoading} />} color="blue">
+              Next refresh: {nextRefreshDate ? formatRefreshDate(nextRefreshDate) : 'Sunday'}
+            </Tag>
+            {/* Add refresh button for this specific attraction */}
+            <Button 
+              size="small"
+              icon={<SyncOutlined />}
+              loading={attractionImagesLoading}
+              onClick={async () => {
+                try {
+                  setAttractionImagesLoading(true);
+                  const result = await getRealTimeAttractionImages(item.name, 1);
+                  if (result && result.images && result.images.length > 0) {
+                    const newImagesMap = {...attractionImages};
+                    newImagesMap[item.id] = result.images[0];
+                    setAttractionImages(newImagesMap);
+                    message.success(`Updated image for ${item.name}`);
+                  } else {
+                    message.warning("Could not find a new image. Try again later.");
+                  }
+                } catch (err) {
+                  console.error("Error refreshing attraction image:", err);
+                  message.error("Failed to refresh image. Try again later.");
+                } finally {
+                  setAttractionImagesLoading(false);
+                }
+              }}
+            >
+              Refresh Image
+            </Button>
+          </Space>
+          <Divider />
+          <Text type="secondary">You'll be redirected to our booking partner's website to complete your reservation.</Text>
+          {redirectCountdown > 0 && (
+            <>
+              <Divider />
+              <Alert
+                message={`Redirecting to tickets.com in ${redirectCountdown} seconds...`}
+                type="info"
+                showIcon
+              />
+            </>
+          )}
+        </div>
+      );
+      
+      // Set the redirect info
+      setRedirectInfo({ 
+        id: item.id, 
+        type: 'attraction', 
+        provider: 'tickets' 
+      });
     }
     
+    // Set the modal content and make it visible
     setModalContent(content);
     setModalVisible(true);
+    
+    // Start the countdown
+    setRedirectCountdown(5);
   };
   
   // Handle the Travel Essentials buttons
@@ -521,6 +782,131 @@ const Destination = () => {
         break;
     }
   };
+
+  // Add a function to refresh all attraction images
+  const refreshAllAttractionImages = async () => {
+    if (!attractions || attractions.length === 0) return;
+    
+    // Show loading message
+    message.loading('Refreshing attraction images...', 1);
+    
+    // Refresh all attraction images
+    await fetchAttractionImages(attractions);
+    
+    // Show success message
+    message.success('Attraction images updated!');
+  };
+
+  // Update the attractions tab to include a refresh button
+  const renderAttractionsTab = () => (
+    <>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <Space>
+          <Text type="secondary">Images update weekly. </Text>
+          <Tag icon={<SyncOutlined />} color="blue">
+            Next refresh: {nextRefreshDate ? formatRefreshDate(nextRefreshDate) : 'Sunday'}
+          </Tag>
+        </Space>
+        <Button 
+          type="primary" 
+          icon={attractionImagesLoading ? <LoadingOutlined /> : <SyncOutlined />} 
+          onClick={refreshAllAttractionImages}
+          loading={attractionImagesLoading}
+          disabled={attractionImagesLoading}
+        >
+          Refresh Images
+        </Button>
+      </div>
+      <Row gutter={[24, 24]}>
+        {attractions.map(attraction => {
+          // Use the real-time image if available, otherwise fall back to the default image
+          const attractionImage = attractionImages[attraction.id] || attraction.image;
+          
+          return (
+            <Col xs={24} sm={12} lg={8} key={attraction.id}>
+              <StyledCard
+                hoverable
+                cover={
+                  <div style={{ position: 'relative', height: 200 }}>
+                    {attractionImagesLoading ? (
+                      <div style={{ 
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        backgroundColor: '#f5f5f5'
+                      }}>
+                        <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
+                      </div>
+                    ) : (
+                      <>
+                        <img
+                          alt={attraction.name}
+                          src={attractionImage}
+                          style={{ 
+                            height: 200, 
+                            width: '100%', 
+                            objectFit: 'cover',
+                            display: 'block'
+                          }}
+                          onError={(e) => {
+                            console.log("Attraction image failed to load, trying fallback:", e.target.src);
+                            // Try to load a fallback from a different source
+                            if (!e.target.src.includes('fallback')) {
+                              e.target.src = `https://source.unsplash.com/featured/?${encodeURIComponent(attraction.name)}&landmark&fallback=${Date.now()}`;
+                            } else {
+                              // Final fallback to attraction's default image
+                              e.target.src = attraction.image || 'https://cdn.britannica.com/38/189838-050-6351B307/Iolani-Palace-Oahu-Honolulu-Hawaiian-Islands.jpg';
+                              e.target.dataset.fallback = 'used';
+                            }
+                          }}
+                        />
+                        {/* Add an overlay to indicate this is a real-time image */}
+                        {attractionImages[attraction.id] && (
+                          <div style={{
+                            position: 'absolute',
+                            top: 10,
+                            right: 10,
+                            backgroundColor: 'rgba(24, 144, 255, 0.8)',
+                            color: 'white',
+                            padding: '2px 8px',
+                            borderRadius: '4px',
+                            fontSize: '12px'
+                          }}>
+                            <SyncOutlined style={{ marginRight: 4 }} /> Live
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                }
+              >
+                <Card.Meta
+                  title={attraction.name}
+                  description={
+                    <>
+                      <Rate disabled defaultValue={attraction.rating} style={{ fontSize: '12px' }} />
+                      <div style={{ marginTop: 10, maxHeight: '60px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {attraction.description || `Experience the beauty and history of ${attraction.name}.`}
+                      </div>
+                      <Space style={{ marginTop: 16 }}>
+                        <Button size="small" onClick={() => handleBookNow(attraction, 'attraction')}>Book Tickets</Button>
+                        <Button size="small" onClick={() => handleViewDetails(attraction, 'attraction')}>View Details</Button>
+                      </Space>
+                    </>
+                  }
+                />
+              </StyledCard>
+            </Col>
+          );
+        })}
+      </Row>
+    </>
+  );
 
   if (loading) {
     return (
@@ -624,9 +1010,22 @@ const Destination = () => {
                     src={image} 
                     alt={`${destination.name} - ${index + 1}`} 
                     onError={(e) => {
-                      // Fallback to the default image if loading fails
-                      e.target.onerror = null;
-                      e.target.src = destination.image;
+                      console.log("Image failed to load, using fallback:", e.target.src);
+                      // Try to load a fallback from a different source
+                      if (!e.target.src.includes('britannica.com') && !e.target.src.includes('fallback')) {
+                        e.target.src = `https://source.unsplash.com/featured/?${encodeURIComponent(destination.name)}&tourism&fallback=${Date.now()}`;
+                      } else if (!e.target.src.includes('fallback2')){
+                        // Final fallback
+                        e.target.src = 'https://cdn.britannica.com/30/94430-050-D0FC51CD/Niagara-Falls.jpg';
+                        e.target.dataset.fallback = 'used';
+                      }
+                    }}
+                    style={{ 
+                      objectFit: 'cover', 
+                      height: '100%', 
+                      width: '100%',
+                      opacity: imagesLoading ? 0.7 : 1,
+                      transition: 'opacity 0.3s ease'
                     }}
                   />
                   <div className="caption">
@@ -636,6 +1035,17 @@ const Destination = () => {
                       <Text style={{ color: 'white' }}>{destination.location}</Text>
                     </Space>
                   </div>
+                  {imagesLoading && (
+                    <div style={{ 
+                      position: 'absolute', 
+                      top: '50%', 
+                      left: '50%', 
+                      transform: 'translate(-50%, -50%)',
+                      zIndex: 5
+                    }}>
+                      <Spin indicator={<LoadingOutlined style={{ fontSize: 40, color: 'white' }} spin />} />
+                    </div>
+                  )}
                 </div>
               ))}
             </StyledCarousel>
@@ -645,21 +1055,44 @@ const Destination = () => {
               icon={imagesLoading ? <LoadingOutlined /> : <SyncOutlined />} 
               onClick={() => fetchRealTimeImages(destination.name)}
               title="Refresh with latest images"
+              disabled={imagesLoading}
             />
-            <Tag 
-              color="blue" 
+            <Space 
+              direction="vertical"
               style={{ 
                 position: 'absolute', 
                 top: 20, 
                 left: 20, 
-                zIndex: 5,
-                opacity: 0.8,
-                padding: '4px 8px',
-                borderRadius: '4px'
+                zIndex: 5
               }}
             >
-              <CameraOutlined /> Real-time Images
-            </Tag>
+              <Tag 
+                color="blue" 
+                style={{ 
+                  opacity: 0.9,
+                  padding: '4px 8px',
+                  borderRadius: '4px'
+                }}
+              >
+                <CameraOutlined /> Real-time Images
+              </Tag>
+              
+              {nextRefreshDate && (
+                <Tooltip title={`Images are refreshed every Sunday. Next refresh will be on ${formatRefreshDate(nextRefreshDate)}`}>
+                  <Tag
+                    color="green"
+                    style={{
+                      opacity: 0.9,
+                      padding: '4px 8px',
+                      borderRadius: '4px'
+                    }}
+                  >
+                    <ClockCircleOutlined /> Updates on {formatRefreshDate(nextRefreshDate)}
+                  </Tag>
+                </Tooltip>
+              )}
+            </Space>
+            
             {/* Translation Button */}
             <Button
               type="primary"
@@ -670,7 +1103,7 @@ const Destination = () => {
                 top: 20,
                 right: 70,
                 zIndex: 10,
-                opacity: 0.8,
+                opacity: 0.9,
               }}
               onClick={() => changeLocale(locale === 'en' ? 'zh' : 'en')}
             >
@@ -679,7 +1112,19 @@ const Destination = () => {
           </>
         ) : (
           <div className="image-container">
-            <img src={destination.image} alt={destination.name} />
+            <img 
+              src={destination.image} 
+              alt={destination.name} 
+              onError={(e) => {
+                console.log("Default image failed to load, using fallback");
+                e.target.src = 'https://cdn.britannica.com/85/84985-050-BD97A936/Great-Wall-of-China-Mu-Tian-Yu.jpg';
+              }}
+              style={{ 
+                width: '100%', 
+                height: '100%', 
+                objectFit: 'cover' 
+              }}
+            />
             <div className="caption">
               <Title level={1} style={{ color: 'white', margin: 0 }}>{destination.name}</Title>
               <Space size="small">
@@ -689,8 +1134,13 @@ const Destination = () => {
             </div>
             {imagesLoading ? (
               <Spin 
-                indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} 
-                style={{ position: 'absolute', top: 20, right: 20, zIndex: 10 }}
+                indicator={<LoadingOutlined style={{ fontSize: 40, color: 'white' }} spin />} 
+                style={{ 
+                  position: 'absolute', 
+                  top: '50%', 
+                  left: '50%', 
+                  transform: 'translate(-50%, -50%)'
+                }}
               />
             ) : (
               <RefreshButton 
@@ -838,33 +1288,11 @@ const Destination = () => {
         
         {/* Attractions Tab */}
         <TabPane 
-          tab={<span><StarOutlined />{t('destination.attractions')}</span>} 
+          tab={<span><CompassOutlined />{t('destination.attractions')}</span>} 
           key="attractions"
         >
-          <Row gutter={[24, 24]}>
-            {attractions.map(attraction => (
-              <Col xs={24} sm={12} lg={8} key={attraction.id}>
-                <StyledCard
-                  hoverable
-                  cover={<img alt={attraction.name} src={attraction.image} style={{ height: 200, objectFit: 'cover' }} />}
-                >
-                  <Card.Meta
-                    title={attraction.name}
-                    description={
-                      <>
-                        <Rate disabled defaultValue={attraction.rating} style={{ fontSize: '12px' }} />
-                        <div style={{ marginTop: 10 }}>{attraction.description}</div>
-                        <Space style={{ marginTop: 16 }}>
-                          <Button size="small" onClick={() => handleBookNow(attraction, 'attraction')}>Book Tickets</Button>
-                          <Button size="small" onClick={() => handleViewDetails(attraction, 'attraction')}>View Details</Button>
-                        </Space>
-                      </>
-                    }
-                  />
-                </StyledCard>
-              </Col>
-            ))}
-          </Row>
+          <Divider>{t('destination.topAttractions')}</Divider>
+          {renderAttractionsTab()}
         </TabPane>
         
         {/* Hotels Tab */}

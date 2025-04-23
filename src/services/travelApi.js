@@ -566,11 +566,38 @@ const generateHotelsForDestination = (destination) => {
 // Create a cache to store dynamically generated destinations
 const dynamicDestinationsCache = new Map();
 
-// Cache for real-time images to avoid excessive API calls
+// Cache for real-time images
 const realTimeImagesCache = new Map();
+const realTimeAttractionImagesCache = new Map();
+
+// Cache metadata to track when images were last updated
+const realTimeImagesCacheMetadata = {
+  lastUpdateDay: null
+};
+
+// Function to check if it's time to refresh the cache (every Sunday)
+const shouldRefreshImageCache = () => {
+  const today = new Date();
+  const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+  
+  // If it's Sunday (day 0) and we haven't updated today yet
+  if (currentDay === 0 && realTimeImagesCacheMetadata.lastUpdateDay !== today.toDateString()) {
+    realTimeImagesCacheMetadata.lastUpdateDay = today.toDateString();
+    return true;
+  }
+  
+  return false;
+};
 
 // Function to fetch real-time images for a destination
 export async function getRealTimeDestinationImages(destinationName, count = 5) {
+  // Check if it's Sunday and time to refresh the cache
+  if (shouldRefreshImageCache()) {
+    console.log('It\'s Sunday! Clearing image cache for weekly refresh');
+    realTimeImagesCache.clear();
+    realTimeAttractionImagesCache.clear();
+  }
+  
   // Check cache first to avoid redundant API calls
   const cacheKey = `${destinationName}-${count}`;
   if (realTimeImagesCache.has(cacheKey)) {
@@ -579,7 +606,6 @@ export async function getRealTimeDestinationImages(destinationName, count = 5) {
   
   try {
     // In a real implementation, this would call an actual API
-    // For example, using Unsplash API, Google Places API, or a news API
     console.log(`Fetching real-time images for: ${destinationName}`);
     
     // Simulate network delay
@@ -589,95 +615,146 @@ export async function getRealTimeDestinationImages(destinationName, count = 5) {
     const currentDate = new Date();
     const dateString = currentDate.toISOString().split('T')[0]; // YYYY-MM-DD
     
-    // Generate search terms based on destination name
-    const searchTerms = [
-      `${destinationName} skyline`,
-      `${destinationName} landmarks`,
-      `${destinationName} attractions`,
-      `${destinationName} tourism`,
-      `${destinationName} travel`
-    ];
-    
-    // For demo purposes, we'll generate dynamic image URLs
-    // In a real app, these would come from an actual API
+    // For demo purposes, we'll use a mixture of reliable travel site images
+    // This would be replaced with actual API calls in a production environment
     const images = [];
     
-    // Add some predictable sources first to ensure quality results
-    const knownImageSources = {
+    // Comprehensive list of reliable destination images from multiple travel sites
+    const reliableDestinationImages = {
       'tokyo': [
+        // Booking.com and Expedia style images
         'https://images.unsplash.com/photo-1503899036084-c55cdd92da26',
         'https://images.unsplash.com/photo-1536098561742-ca998e48cbcc',
         'https://images.unsplash.com/photo-1513407030348-c983a97b98d8',
-        'https://images.unsplash.com/photo-1554797589-7241bb691973',
-        'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf'
+        'https://www.planetware.com/photos-large/JPN/japan-mt-fuji-and-cherry-blossoms.jpg',
+        'https://www.gotokyo.org/en/plan/tokyo-outline/images/main.jpg'
       ],
       'paris': [
+        // Booking.com and TripAdvisor style images
         'https://images.unsplash.com/photo-1502602898657-3e91760cbb34',
         'https://images.unsplash.com/photo-1499856871958-5b9627545d1a',
-        'https://images.unsplash.com/photo-1541685874008-18587d691efa',
-        'https://images.unsplash.com/photo-1551781066-15814a6965c7',
-        'https://images.unsplash.com/photo-1505761671935-60b3a7427bad'
+        'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/15/34/00/45/paris.jpg',
+        'https://www.travelandleisure.com/thmb/SPUPzO88ZXq6P4Sm4mC5Xuinoik=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/eiffel-tower-paris-france-EIFFEL0217-6ccc3553e98946f18c893018d5b42bde.jpg',
+        'https://media.cntraveler.com/photos/5cf8a1b05400d96e753f13b5/16:9/w_2560%2Cc_limit/Paris_GettyImages-1005348968.jpg'
       ],
       'new york': [
+        // Booking.com and Expedia style images
         'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9',
         'https://images.unsplash.com/photo-1593880223042-744ce9a4b58f',
-        'https://images.unsplash.com/photo-1522083165195-3424ed129620',
-        'https://images.unsplash.com/photo-1500916434205-0c77489c6cf7',
-        'https://images.unsplash.com/photo-1534430480872-3498386e7856'
+        'https://media.architecturaldigest.com/photos/5da74823d599ec0008227ea8/16:9/w_2560%2Cc_limit/GettyImages-946087016.jpg',
+        'https://www.planetware.com/photos-large/USNY/new-york-city-central-park-lake.jpg',
+        'https://content.r9cdn.net/rimg/dimg/db/02/06b291e8-city-14080-16561f53c0c.jpg'
       ],
       'rome': [
+        // TripAdvisor and Hotels.com style images
         'https://images.unsplash.com/photo-1552832230-c0197dd311b5',
         'https://images.unsplash.com/photo-1525874684015-58379d421a52',
-        'https://images.unsplash.com/photo-1531572753322-ad063cecc140',
-        'https://images.unsplash.com/photo-1515542622106-78bda8ba0e5b',
-        'https://images.unsplash.com/photo-1529154036614-a60975f5c760'
+        'https://media.cntraveler.com/photos/5b914e80d5806340ca438db1/16:9/w_2560%2Cc_limit/Rome_GettyImages-1038117600.jpg',
+        'https://www.fodors.com/wp-content/uploads/2018/10/HERO_UltimateRome_Hero_shutterstock789412159.jpg',
+        'https://lp-cms-production.imgix.net/2021-05/shutterstock_304788282.jpg'
       ],
       'london': [
+        // Booking.com and Expedia style images
         'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad',
         'https://images.unsplash.com/photo-1517394834181-95ed159986c7',
-        'https://images.unsplash.com/photo-1533929736458-ca588d08c8be',
-        'https://images.unsplash.com/photo-1529180184525-78f99adb8e98',
-        'https://images.unsplash.com/photo-1486299267070-83823f5448dd'
+        'https://media.cntraveler.com/photos/63fca7908e7ec42682c6dbeb/16:9/w_2560%2Cc_limit/London_GettyImages-1386022245.jpg',
+        'https://www.visitbritain.com/sites/default/files/consumer_components_enhanced/header_image/vb34141681_2.jpg',
+        'https://www.planetware.com/photos-large/ENG/england-london-tower-bridge.jpg'
       ],
       'kyoto': [
+        // Japan Tourism and Booking.com style images
         'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e',
         'https://images.unsplash.com/photo-1545569341-9eb8b30979d9',
-        'https://images.unsplash.com/photo-1624280433509-0726ed60f9ad',
-        'https://images.unsplash.com/photo-1493997181344-712f2f19d87a',
-        'https://images.unsplash.com/photo-1558862107-d49ef2a04d72'
+        'https://www.japan-guide.com/g18/3900_01.jpg',
+        'https://media.cntraveler.com/photos/63482b255e7943ad4006df0b/16:9/w_2560%2Cc_limit/Kyoto%20Japan_GettyImages-11751047.jpg',
+        'https://a.cdn-hotels.com/gdcs/production40/d811/5e89e62b-ba7a-4127-8276-972d4a99b2bc.jpg'
       ],
       'barcelona': [
+        // TripAdvisor and Expedia style images
         'https://images.unsplash.com/photo-1539037116277-4db20889f2d4',
         'https://images.unsplash.com/photo-1583422409516-2895a77efded',
-        'https://images.unsplash.com/photo-1559058789-672da06263d8',
-        'https://images.unsplash.com/photo-1579282240050-352db0a14c21',
-        'https://images.unsplash.com/photo-1511527661048-7fe73d85e9a4'
+        'https://www.fodors.com/wp-content/uploads/2022/03/HERO_Barcelona_Hero_shutterstock_1161851206.jpg',
+        'https://media.cntraveler.com/photos/5a0ac559c23d8e08d959882a/16:9/w_2560%2Cc_limit/Exterior_ParkGuell_GettyImages-160749940.jpg',
+        'https://content.r9cdn.net/rimg/dimg/b7/15/91fd5882-city-18177-169ae67e82d.jpg'
+      ],
+      'san francisco': [
+        // TripAdvisor and Hotels.com style images
+        'https://images.unsplash.com/photo-1501594907352-04cda38ebc29',
+        'https://images.unsplash.com/photo-1506190503455-eca9c76513c1',
+        'https://media.cntraveler.com/photos/63fcd6da0675de577c5149a6/16:9/w_2560%2Cc_limit/San%20Francisco_GettyImages-1347431770.jpg',
+        'https://cdn.britannica.com/13/77413-050-95217C0B/Golden-Gate-Bridge-San-Francisco.jpg',
+        'https://www.travelandleisure.com/thmb/Ps0E8r5iSftcRmDEC9IJ7oCUAZU=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/golden-gate-bridge-san-francisco-SANFRAN0819-e94a234ec8284f96abc4312a37e2a0bc.jpg'
+      ],
+      'amsterdam': [
+        // Booking.com and TripAdvisor style images
+        'https://images.unsplash.com/photo-1534351590666-13e3e96b5017',
+        'https://images.unsplash.com/photo-1576924542622-772cb2560890',
+        'https://media.cntraveler.com/photos/5a029bf49674f96701fe5271/16:9/w_2560%2Cc_limit/Amsterdam_GettyImages-489337898.jpg',
+        'https://a.cdn-hotels.com/gdcs/production157/d1898/abc9d800-c31d-11e8-87bb-0242ac110006.jpg',
+        'https://content.r9cdn.net/rimg/dimg/63/7c/46f5ab3a-city-23598-16972726993.jpg'
+      ],
+      'dubai': [
+        // Booking.com and Expedia style images
+        'https://images.unsplash.com/photo-1512453979798-5ea266f8880c',
+        'https://images.unsplash.com/photo-1518684079-3c830dcef090',
+        'https://www.planetware.com/photos-large/UAE/uae-dubai-burj-khalifa.jpg',
+        'https://media.cntraveler.com/photos/63c96d9fc1c02a63ee05584d/16:9/w_2560%2Cc_limit/Dubai_GettyImages-1149100079.jpg',
+        'https://content.r9cdn.net/rimg/dimg/45/5b/6b106ff6-city-34086-162d77ff8db.jpg'
       ]
     };
     
+    // Add fallback reliable images for any destination
+    const fallbackImages = [
+      'https://cdn.britannica.com/30/94430-050-D0FC51CD/Niagara-Falls.jpg',
+      'https://cdn.britannica.com/85/84985-050-BD97A936/Great-Wall-of-China-Mu-Tian-Yu.jpg',
+      'https://cdn.britannica.com/25/153525-050-fc2034ce/Colosseum-Rome-Italy.jpg',
+      'https://cdn.britannica.com/56/94456-050-4C0AB93F/Great-Sphinx-Giza-Egypt.jpg',
+      'https://cdn.britannica.com/54/150754-050-5B93A950/interior-Hagia-Sophia-Istanbul.jpg'
+    ];
+    
     // Check if we have known images for this destination
     const destinationLower = destinationName.toLowerCase();
-    if (knownImageSources[destinationLower]) {
-      images.push(...knownImageSources[destinationLower]);
+    const destinationParts = destinationLower.split(',').map(part => part.trim());
+    const primaryLocation = destinationParts[0]; // City name is typically first
+    
+    // Try to match with our reliable sources first
+    if (reliableDestinationImages[primaryLocation]) {
+      images.push(...reliableDestinationImages[primaryLocation]);
+    } else {
+      // Check for partial matches if no exact match
+      const partialMatches = Object.keys(reliableDestinationImages).filter(
+        key => primaryLocation.includes(key) || key.includes(primaryLocation)
+      );
+      
+      if (partialMatches.length > 0) {
+        // Use the first partial match
+        images.push(...reliableDestinationImages[partialMatches[0]]);
+      } else {
+        // If no match found, use the destination search term with the Unsplash API
+        for (let i = 0; i < Math.min(3, count); i++) {
+          const imageUrl = `https://source.unsplash.com/featured/?${encodeURIComponent(destinationName)}&tourism&travel&date=${dateString}&rand=${Math.random()}`;
+          images.push(imageUrl);
+        }
+        
+        // Add generic travel images as fallbacks
+        images.push(...fallbackImages.slice(0, count - images.length));
+      }
     }
     
-    // If we still need more images, generate them
+    // Ensure we have the requested number of images by adding fallbacks if needed
     while (images.length < count) {
-      const searchTerm = searchTerms[images.length % searchTerms.length];
-      // Use Unsplash source with search terms and randomization to simulate real API
-      // Add date string to make it feel "real-time" updated
-      const imageUrl = `https://source.unsplash.com/featured/?${encodeURIComponent(searchTerm)}&date=${dateString}&rand=${Math.random()}`;
-      images.push(imageUrl);
+      images.push(fallbackImages[images.length % fallbackImages.length]);
     }
     
     // Add metadata to make it feel more real-time
     const result = {
-      images,
+      images: images.slice(0, count), // Limit to requested count
       metadata: {
         source: 'Travel API Image Service',
         updated: new Date().toISOString(),
         query: destinationName,
-        totalResults: images.length
+        totalResults: images.length,
+        nextRefresh: getNextSundayDate()
       }
     };
     
@@ -686,9 +763,32 @@ export async function getRealTimeDestinationImages(destinationName, count = 5) {
     return result;
   } catch (error) {
     console.error("Error fetching real-time destination images:", error);
-    // Return empty results on error
-    return { images: [], metadata: { error: 'Failed to fetch images' } };
+    // Return generic fallback images on error
+    const fallbackImages = [
+      'https://cdn.britannica.com/30/94430-050-D0FC51CD/Niagara-Falls.jpg',
+      'https://cdn.britannica.com/85/84985-050-BD97A936/Great-Wall-of-China-Mu-Tian-Yu.jpg',
+      'https://cdn.britannica.com/25/153525-050-fc2034ce/Colosseum-Rome-Italy.jpg',
+      'https://cdn.britannica.com/56/94456-050-4C0AB93F/Great-Sphinx-Giza-Egypt.jpg',
+      'https://cdn.britannica.com/54/150754-050-5B93A950/interior-Hagia-Sophia-Istanbul.jpg'
+    ];
+    
+    return { 
+      images: fallbackImages.slice(0, count),
+      metadata: { 
+        error: 'Failed to fetch images',
+        nextRefresh: getNextSundayDate()
+      } 
+    };
   }
+}
+
+// Helper function to get the date of the next Sunday
+function getNextSundayDate() {
+  const today = new Date();
+  const daysUntilNextSunday = (7 - today.getDay()) % 7;
+  const nextSunday = new Date(today);
+  nextSunday.setDate(today.getDate() + daysUntilNextSunday);
+  return nextSunday.toISOString().split('T')[0]; // YYYY-MM-DD
 }
 
 export async function getDestinationById(id) {
@@ -862,4 +962,183 @@ export async function getAttractions(destinationId) {
   
   // Default to mock data
   return mockAttractions[destinationId] || [];
+}
+
+// Function to fetch real-time images for attractions
+export async function getRealTimeAttractionImages(attractionName, count = 1) {
+  // Check if it's Sunday and time to refresh the cache
+  if (shouldRefreshImageCache()) {
+    console.log('It\'s Sunday! Clearing image cache for weekly refresh');
+    realTimeImagesCache.clear();
+    realTimeAttractionImagesCache.clear();
+  }
+  
+  // Check cache first to avoid redundant API calls
+  const cacheKey = `${attractionName}-${count}`;
+  if (realTimeAttractionImagesCache.has(cacheKey)) {
+    return realTimeAttractionImagesCache.get(cacheKey);
+  }
+  
+  try {
+    // In a real implementation, this would call an actual API
+    console.log(`Fetching real-time images for attraction: ${attractionName}`);
+    
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Create a date string for today to simulate real-time nature
+    const currentDate = new Date();
+    const dateString = currentDate.toISOString().split('T')[0]; // YYYY-MM-DD
+    
+    // For demo purposes, we'll use a mixture of reliable travel site images
+    const images = [];
+    
+    // Comprehensive list of reliable attraction images from multiple travel sites
+    const reliableAttractionImages = {
+      'eiffel tower': [
+        // TripAdvisor and Viator style images
+        'https://images.unsplash.com/photo-1543349689-9a4d426bee8e',
+        'https://images.unsplash.com/photo-1511739001486-6bfe10ce785f',
+        'https://media.tacdn.com/media/attractions-splice-spp-674x446/07/03/1c/9c.jpg',
+        'https://cdn.getyourguide.com/img/tour/5d4c91bdb9f9a.jpeg/98.jpg',
+        'https://www.planetware.com/photos-large/F/france-paris-eiffel-tower.jpg'
+      ],
+      'louvre museum': [
+        // TripAdvisor and GetYourGuide style images
+        'https://images.unsplash.com/photo-1565060169861-0b0eb9694efd',
+        'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5',
+        'https://media.tacdn.com/media/attractions-splice-spp-674x446/06/74/2c/9d.jpg',
+        'https://cdn.getyourguide.com/img/location/5ffeb0e873d70.jpeg/88.jpg',
+        'https://cdn.britannica.com/36/162636-050-932C5D49/Louvre-Museum-Paris-France.jpg'
+      ],
+      'golden gate bridge': [
+        // TripAdvisor and GetYourGuide style images
+        'https://images.unsplash.com/photo-1501594907352-04cda38ebc29',
+        'https://images.unsplash.com/photo-1534050359320-02900022671e',
+        'https://media.tacdn.com/media/attractions-splice-spp-674x446/07/93/21/f1.jpg',
+        'https://cdn.britannica.com/30/94430-050-D0FC51CD/Niagara-Falls.jpg',
+        'https://cdn.britannica.com/89/179589-138-3EE27C94/Overview-Golden-Gate-Bridge-San-Francisco.jpg'
+      ],
+      'statue of liberty': [
+        // TripAdvisor and Viator style images
+        'https://images.unsplash.com/photo-1605130284535-11dd9eedc58a',
+        'https://images.unsplash.com/photo-1443181844940-9042ec79924b',
+        'https://media.tacdn.com/media/attractions-splice-spp-674x446/06/71/1e/ae.jpg',
+        'https://cdn.getyourguide.com/img/location/5ffeb496ccb7b.jpeg/88.jpg',
+        'https://cdn.britannica.com/82/183382-050-D832EC3A/Detail-head-crown-Statue-of-Liberty-New.jpg'
+      ],
+      'colosseum': [
+        // TripAdvisor and GetYourGuide style images
+        'https://images.unsplash.com/photo-1552832230-c0197dd311b5',
+        'https://images.unsplash.com/photo-1615445167544-298eed4ab252',
+        'https://media.tacdn.com/media/attractions-splice-spp-674x446/06/71/36/43.jpg',
+        'https://cdn.getyourguide.com/img/location/5ffeb496c6a04.jpeg/88.jpg',
+        'https://www.planetware.com/photos-large/I/italy-rome-colosseum.jpg'
+      ],
+      'tokyo tower': [
+        // TripAdvisor and GetYourGuide style images
+        'https://images.unsplash.com/photo-1536098561742-ca998e48cbcc',
+        'https://images.unsplash.com/photo-1551641506-ee5bf4cb45f1',
+        'https://media.tacdn.com/media/attractions-splice-spp-674x446/0a/92/54/6b.jpg',
+        'https://cdn.getyourguide.com/img/location/5ffeb75ed5fac.jpeg/88.jpg',
+        'https://cdn.britannica.com/41/75841-050-EE77B20D/Tokyo-Tower-Japan.jpg'
+      ],
+      'great wall of china': [
+        // TripAdvisor and Viator style images
+        'https://images.unsplash.com/photo-1508804185872-d7badad00f7d',
+        'https://images.unsplash.com/photo-1549893072-4bc678117f45',
+        'https://media.tacdn.com/media/attractions-splice-spp-674x446/07/38/d3/83.jpg',
+        'https://cdn.getyourguide.com/img/location/5ffeb40fb9d5a.jpeg/88.jpg',
+        'https://cdn.britannica.com/89/179589-138-3EE27C94/Overview-Golden-Gate-Bridge-San-Francisco.jpg'
+      ],
+      'taj mahal': [
+        // TripAdvisor and Viator style images
+        'https://images.unsplash.com/photo-1585135497273-1a07a7d3942d',
+        'https://images.unsplash.com/photo-1564507592333-c60657eea523',
+        'https://media.tacdn.com/media/attractions-splice-spp-674x446/0a/31/85/51.jpg',
+        'https://cdn.getyourguide.com/img/location/5c9e0b7bce3d6.jpeg/88.jpg',
+        'https://cdn.britannica.com/86/170586-050-AB7FEFAE/Taj-Mahal-Agra-India.jpg'
+      ],
+      'sydney opera house': [
+        // TripAdvisor and GetYourGuide style images
+        'https://images.unsplash.com/photo-1530587609993-41fae2caebbd',
+        'https://images.unsplash.com/photo-1524293581917-878a6d017c71',
+        'https://media.tacdn.com/media/attractions-splice-spp-674x446/07/be/6b/a0.jpg',
+        'https://cdn.getyourguide.com/img/tour/60e6fde75a9b6.jpeg/98.jpg',
+        'https://cdn.britannica.com/96/100196-050-C92064E0/Sydney-Opera-House-Port-Jackson.jpg'
+      ]
+    };
+    
+    // Add generic fallback attractions in case we can't find a match
+    const fallbackAttractionImages = [
+      'https://images.unsplash.com/photo-1558370781-d6196949e317', // Generic attraction
+      'https://images.unsplash.com/photo-1603199032603-d704e943f5cf', // Landmark
+      'https://media.tacdn.com/media/attractions-splice-spp-674x446/0a/92/54/6b.jpg', // Popular site
+      'https://cdn.britannica.com/38/189838-050-6351B307/Iolani-Palace-Oahu-Honolulu-Hawaiian-Islands.jpg', // Historic building
+      'https://cdn.britannica.com/69/94469-050-5ACEAD0F/Emperor-Hadrian-villa-Tivoli-Italy.jpg' // Ancient ruins
+    ];
+    
+    // Process attraction name for better matching
+    const attractionLower = attractionName.toLowerCase();
+    
+    // Try to match with our reliable sources first
+    if (reliableAttractionImages[attractionLower]) {
+      images.push(...reliableAttractionImages[attractionLower]);
+    } else {
+      // Check for partial matches
+      const partialMatches = Object.keys(reliableAttractionImages).filter(
+        key => attractionLower.includes(key) || key.includes(attractionLower)
+      );
+      
+      if (partialMatches.length > 0) {
+        // Use the first partial match
+        images.push(...reliableAttractionImages[partialMatches[0]]);
+      } else {
+        // If no match found, use the attraction search term with the Unsplash API
+        for (let i = 0; i < Math.min(2, count); i++) {
+          const imageUrl = `https://source.unsplash.com/featured/?${encodeURIComponent(attractionName)}&landmark&travel&date=${dateString}&rand=${Math.random()}`;
+          images.push(imageUrl);
+        }
+        
+        // Add fallback travel images
+        images.push(...fallbackAttractionImages.slice(0, count - images.length));
+      }
+    }
+    
+    // Ensure we have the requested number of images by adding fallbacks if needed
+    while (images.length < count) {
+      images.push(fallbackAttractionImages[images.length % fallbackAttractionImages.length]);
+    }
+    
+    // Add metadata to make it feel more real-time
+    const result = {
+      images: images.slice(0, count), // Limit to requested count
+      metadata: {
+        source: 'Travel API Attraction Image Service',
+        updated: new Date().toISOString(),
+        query: attractionName,
+        totalResults: images.length,
+        nextRefresh: getNextSundayDate()
+      }
+    };
+    
+    // Cache the results to avoid redundant API calls
+    realTimeAttractionImagesCache.set(cacheKey, result);
+    return result;
+  } catch (error) {
+    console.error("Error fetching real-time attraction images:", error);
+    // Return generic fallback image on error
+    const fallbackImages = [
+      'https://images.unsplash.com/photo-1558370781-d6196949e317', // Generic attraction
+      'https://cdn.britannica.com/38/189838-050-6351B307/Iolani-Palace-Oahu-Honolulu-Hawaiian-Islands.jpg' // Historic building
+    ];
+    
+    return { 
+      images: fallbackImages.slice(0, count),
+      metadata: { 
+        error: 'Failed to fetch images',
+        nextRefresh: getNextSundayDate()
+      } 
+    };
+  }
 }

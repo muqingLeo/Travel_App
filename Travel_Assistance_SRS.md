@@ -115,6 +115,30 @@ The Travel Assistance Platform acts as a digital concierge, helping users plan t
 12. **User Agreement & Privacy Acknowledgement**  
     Accept Terms of Service and Privacy Policy on first use.
 
+### 3.3 Social Networking Features
+1. **Traveler Connections**
+   - Allow users to find and connect with other travelers heading to the same destination.
+   - Provide options to filter connections based on travel dates, interests, and demographics.
+
+2. **Group Trip Planning**
+   - Enable collaborative itinerary creation for groups.
+   - Allow group members to suggest, vote on, and finalize activities.
+
+3. **Community Engagement**
+   - Create destination-specific groups where users can share tips, photos, and experiences.
+   - Implement a feed for users to post updates, ask questions, and interact with others.
+
+4. **Social Profiles**
+   - Allow users to create and customize profiles showcasing their travel history, photos, and reviews.
+   - Include privacy settings to control profile visibility and connection requests.
+
+5. **Notifications for Social Interactions**
+   - Notify users of new connection requests, group activity updates, and community posts.
+
+6. **Safety and Moderation**
+   - Implement reporting and blocking features to ensure a safe community environment.
+   - Use AI to detect and flag inappropriate content or behavior.
+
 ## 4. Non‑functional Requirements
 - **Performance:** Page loads <2 s; chat latency <300 ms; support ≥10 000 concurrent users.  
 - **Scalability:** Horizontal scaling; modular code for feature expansion.  
@@ -125,6 +149,10 @@ The Travel Assistance Platform acts as a digital concierge, helping users plan t
 - **Compatibility:** Support modern browsers; mini program meets WeChat requirements.  
 - **Localization Flexibility:** Easily add new languages and regional customizations.  
 - **Peak Load Response:** Auto‑scaling, queuing for chat during spikes.
+- **Scalability:** Ensure the social networking features can handle a growing user base and high interaction volumes.
+- **Usability:** Design intuitive interfaces for social features, ensuring ease of use for all age groups.
+- **Privacy:** Provide robust privacy controls for user profiles and interactions.
+- **Moderation:** Use automated and manual moderation to maintain a positive community environment.
 
 ## 5. External Interfaces
 - **WeChat APIs:** Login, profile, location, payments (WeChat Pay) for mini program.  
